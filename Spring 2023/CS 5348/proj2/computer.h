@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstring>
 #include <unistd.h>
+#include <queue>
 
 #include "memory.h"
 #include "cpu.h"
@@ -20,6 +21,8 @@ extern Shell *shell;
 
 Memory* returnMemory();
 Shell* returnShell();
+
+extern bool TERMINATE;
 
 class PCB {
 

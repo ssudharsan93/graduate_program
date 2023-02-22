@@ -1,4 +1,4 @@
-
+#include "computer.h"
 //Initialize the printer, including opening the simulated printing paper, i.e., the “printer.out” file.
 //Sends an ACK to the print component to indicate that the initialization is done.
 printer_init(...)

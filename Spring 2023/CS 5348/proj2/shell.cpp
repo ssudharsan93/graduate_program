@@ -9,10 +9,26 @@ void Shell::shell_init(){
 }            // Initialize the shell module
 
 void Shell::shell_terminate_system() {
+    TERMINATE = 1;
     return;
 }
 
 void Shell::shell_submit_new_process(){
+
+    char prog_name_char;
+    char *input_program_file = new char[80];
+    int base;
+    int prog_name_counter = 0;
+
+    cout << "Input Program File and Base> ";
+
+    while( cin.get(prog_name_char) && !isspace(prog_name_char) ) {
+        input_program_file[prog_name_counter++] = prog_name_char;
+    }
+
+    cin >> base;
+
+    BASE = base;
     return;
 }
 
@@ -64,33 +80,46 @@ void Shell:shell_dump_spool_contents() {
 
 }
 
-void Shell::shell_command (int cmd){
-    switch(cmd){
+void Shell::shell_command (){
 
-      case 0:
-          this->shell_terminate_system();
-          break;
-      case 1:
-          this->shell_submit_new_process();
-          break;
-      case 2:
-          this->shell_print_registers();
-          break;
-      case 3:
-          this->shell_print_memory();
-          break;
-      case 4:
-          this->shell_dump_process_information();
-          break;
-      case 5:
-          this->shell_dump_spool_contents();
-          break;
-      default:
-          break;
+    int cmd;
 
+    while ( !TERMINATE ) {
+
+        cout << "Shell Command> ";
+        cin >> cmd;
+
+        switch(cmd){
+
+          case 0:
+              this->shell_terminate_system();
+              break;
+          case 1:
+              this->shell_submit_new_process();
+              break;
+          case 2:
+              this->shell_print_registers();
+              break;
+          case 3:
+              this->shell_print_memory();
+              break;
+          case 4:
+              this->shell_dump_process_information();
+              break;
+          case 5:
+              this->shell_dump_spool_contents();
+              break;
+          default:
+              break;
+
+        }
     }
 
     return;
 
 } // For each shell command code, call the corresponding functions.
  // Input cmd is the command code.
+
+ int main() {
+    return 0;
+ }

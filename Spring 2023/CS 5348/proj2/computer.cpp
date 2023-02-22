@@ -36,52 +36,49 @@ Shell* returnShell() {
     return shell;
 }
 
-int main() {
+void run_computer() {
 
     int mem_size;
-    char input_data[80];
+    int time_quantum;
+    int printing_time;
+    char delim[] = " ,";
+    char idle_prog_name[] = 'prog_idle';
 
-    ifstream input_file("config.sys");
+    char config_data[80];
 
-    if ( !input_file.good() ) {
+    ifstream config_file("config.sys");
+
+    if ( !config_file.good() ) {
       cout << "Error: config.sys doesn't exist" << endl;
     }
 
     char digit;
     int mem_size_read_counter = 0;
 
-    while ( input_file.get(digit) ){
-        input_data[mem_size_read_counter] = digit;
-        mem_size_read_counter++;
-    }
+    config_file.getline(config_data, 80);
+    char *param = strtok(config_data, delim);
+    mem_size = atoi(param);
+    param = strtok(NULL, delim);
+    time_quantum = atoi(param);
+    param = strtok(NULL, delim);
+    printing_time = atoi(param);
 
-    input_file.close();
-
-    mem_size = atoi(input_data);
-
-    char prog_name_char;
-    char *input_program_file = new char[80];
-    int base;
-    int prog_name_counter = 0;
-
-    cout << "Input Program File and Base> ";
-
-    while( cin.get(prog_name_char) && !isspace(prog_name_char) ) {
-        input_program_file[prog_name_counter++] = prog_name_char;
-    }
-    cin >> base;
-
-    BASE = base;
+    config_file.close();
 
     mem = new Memory(mem_size);
-    FILE* prog_file = load_prog(input_program_file, base);
-    PCB *pcb_proc1 = new PCB();
-    pcb_proc1->process_set_registers();
+    FILE* prog_file = load_prog(idle_prog_name, 0);
+    //PCB *pcb_proc1 = new PCB();
+    //pcb_proc1->process_set_registers();
 
-    shell = new Shell();
-    CPU *cpu = new CPU();
-    cpu->cpu_operation();
+    //shell = new Shell();
+    //CPU *cpu = new CPU();
+    //cpu->cpu_operation();
 
-    load_finish(prog_file);
+    //load_finish(prog_file);
 
+}
+
+int main() {
+    run_computer();
+    return 0;
 }

@@ -60,8 +60,6 @@ bool CPU::cpu_execute_instruction(){
 
         case 6: //6 (ifgo) m-addr If AC > 0 then go to the address given in Mem[m-addr]
             MAR = this->cpu_mem_address(IR1);
-            mem = returnMemory();
-            mem->mem_read();
             if ( AC > 0 ) { PC = MAR; }
             break;
 

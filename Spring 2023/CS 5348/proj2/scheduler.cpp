@@ -1,5 +1,4 @@
-
-
+#include "computer.h"
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 process_init_PCBs(...)

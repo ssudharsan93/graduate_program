@@ -1,3 +1,4 @@
+#include "computer.h"
 //Fork the printer process and establish the pipe communication. Wait for the ACK from printer via pipe.
 print_init(...)
 
