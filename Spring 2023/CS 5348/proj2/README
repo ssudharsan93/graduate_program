@@ -9,4 +9,4 @@ Namely, `./execute`. This will clean the directory
 if necessary and make the corresponding 'computer.exe' file necessary to run
 the code. It will then take in input from comp.in (a sample comp.in) file is
 provided and then write out to comp.out. It will also run computer.exe
-while taking in input from comp.in and pipe the command to the 'wc' command.
+while taking in input from comp.in and pipe the output to the 'wc' command.
