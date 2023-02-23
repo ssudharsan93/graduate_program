@@ -1,0 +1,7 @@
+
+*.pdf
+*.out
+*.in
+*.txt
+*.o
+**/.DS_Store

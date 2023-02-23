@@ -18,7 +18,7 @@ public:
     bool cpu_execute_instruction();  // For each instruction code, perform the simulated hardware operations
     int cpu_mem_address(int m_addr); // Compute the memory address to be accessed and put it in MAR.
                                       // The input is the PC or the operand (m-addr) of an instruction.
-    void cpu_operation();           // Loop for executing instructions, starting from 0 till the exit instruction
+    int cpu_operation();           // Loop for executing instructions, starting from 0 till the exit instruction
 
 };
 

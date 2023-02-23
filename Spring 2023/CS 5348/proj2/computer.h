@@ -17,28 +17,21 @@
 
 using namespace std;
 
-class PCB {
-
-public:
-    PCB();
-    int PID;
-    int PCB_PC;
-    int PCB_AC;
-    int PCB_Base;
-    int PCB_MAR;
-    int PCB_MBR;
-
-    void process_init_PCB();
-    void process_set_registers();
-
-};
-
 extern Memory *mem;
 extern Shell *shell;
+extern CPU *cpu;
+extern Scheduler *scheduler;
+extern ReadyQueue *readyq;
+extern PCB* idlepcb;
+
 extern bool TERMINATE;
-extern queue<PCB*> ReadyQueue;
+extern int TQ;
+extern int PT;
 
 Memory* returnMemory();
 Shell* returnShell();
+CPU* returnCPU();
+Scheduler* returnScheduler();
+ReadyQueue* returnReadyQueue();
 
 #endif COMPUTER_H

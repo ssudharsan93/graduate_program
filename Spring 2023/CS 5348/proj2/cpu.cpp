@@ -61,7 +61,7 @@ bool CPU::cpu_execute_instruction(){
         case 6: //6 (ifgo) m-addr If AC > 0 then go to the address given in Mem[m-addr]
             MAR = this->cpu_mem_address(IR1);
             mem = returnMemory();
-            mem->mem_read()
+            mem->mem_read();
             if ( AC > 0 ) { PC = MBR; }
             break;
 
@@ -95,11 +95,21 @@ int CPU::cpu_mem_address(int m_addr){
     return m_addr + BASE;
 } // Compute the memory address to be accessed and put it in MAR.
                                       // The input is the PC or the operand (m-addr) of an instruction.
-void CPU::cpu_operation(){
+int CPU::cpu_operation(){
     bool executing = true;
+    bool time_expiration = false;
+    int cycles_executed = 0;
 
-    while (executing) {
+    while ( executing && !time_expiration ) {
         this->cpu_fetch_instruction();
         executing = this->cpu_execute_instruction();
+        cycles_executed++;
+        if ( cycles_executed == TQ ){
+            time_expiration = true;
+        }
     }
+
+    if ( executing == false ){ return 0; }
+    if ( time_expiration == true ) { return 1; }
+
 }            // Loop for executing instructions, starting from 0 till the exit instruction
