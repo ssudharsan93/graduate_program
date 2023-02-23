@@ -1,6 +1,6 @@
 EXECUTABLE = computer.exe
-SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp
-HEADERS = computer.h memory.h load.h shell.h cpu.h
+SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp scheduler.cpp
+HEADERS = computer.h memory.h load.h shell.h cpu.h scheduler.h
 CXX = g++
 CFLAGS = -Wall
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -24,6 +24,9 @@ shell.o: shell.cpp shell.h
 
 cpu.o: cpu.cpp cpu.h
 		$(CXX) $(CFLAGS) -c cpu.cpp
+
+scheduler.o: scheduler.cpp scheduler.h
+		$(CXX) $(CFLAGS) -c scheduler.cpp
 
 clean:
 	rm -f ${EXECUTABLE} $(OBJECTS)

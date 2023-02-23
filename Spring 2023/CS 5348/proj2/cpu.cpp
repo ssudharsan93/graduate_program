@@ -60,7 +60,9 @@ bool CPU::cpu_execute_instruction(){
 
         case 6: //6 (ifgo) m-addr If AC > 0 then go to the address given in Mem[m-addr]
             MAR = this->cpu_mem_address(IR1);
-            if ( AC > 0 ) { PC = MAR; }
+            mem = returnMemory();
+            mem->mem_read()
+            if ( AC > 0 ) { PC = MBR; }
             break;
 
         case 7: //7 (print) Null Print the value in AC
@@ -73,7 +75,9 @@ bool CPU::cpu_execute_instruction(){
 
         case 9: //9 (shell) Code Execute the shell command according to code (elaborated later)
             shell = returnShell();
-            shell->shell_command(IR1);
+            if ( IR1 == 2 ) { shell->shell_print_registers(); }
+            else if (IR1 == 3) { shell->shell_print_memory(); }
+            else { break; }
             break;
 
         case 0: //0 (exit) Null End of the current program, null is 0 and is unused

@@ -73,14 +73,14 @@ void Shell::shell_print_memory(){
 }    // Print out all the words in memory in integer form on the screen
 
 void Shell::shell_dump_process_information() {
-
+    return;
 }
 
-void Shell:shell_dump_spool_contents() {
-
+void Shell::shell_dump_spools() {
+    return;
 }
 
-void Shell::shell_command (){
+void Shell::shell_command(){
 
     int cmd;
 
@@ -107,7 +107,7 @@ void Shell::shell_command (){
               this->shell_dump_process_information();
               break;
           case 5:
-              this->shell_dump_spool_contents();
+              this->shell_dump_spools();
               break;
           default:
               break;
@@ -120,6 +120,6 @@ void Shell::shell_command (){
 } // For each shell command code, call the corresponding functions.
  // Input cmd is the command code.
 
- int main() {
+int shell_main() {
     return 0;
- }
+}

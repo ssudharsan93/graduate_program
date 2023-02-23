@@ -13,16 +13,9 @@
 #include "cpu.h"
 #include "load.h"
 #include "shell.h"
+#include "scheduler.h"
 
 using namespace std;
-
-extern Memory *mem;
-extern Shell *shell;
-
-Memory* returnMemory();
-Shell* returnShell();
-
-extern bool TERMINATE;
 
 class PCB {
 
@@ -39,5 +32,13 @@ public:
     void process_set_registers();
 
 };
+
+extern Memory *mem;
+extern Shell *shell;
+extern bool TERMINATE;
+extern queue<PCB*> ReadyQueue;
+
+Memory* returnMemory();
+Shell* returnShell();
 
 #endif COMPUTER_H

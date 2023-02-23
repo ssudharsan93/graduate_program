@@ -2,6 +2,7 @@
 
 Memory* mem;
 Shell* shell;
+bool TERMINATE;
 
 PCB::PCB() {
     this->process_init_PCB();
@@ -38,11 +39,13 @@ Shell* returnShell() {
 
 void run_computer() {
 
+    TERMINATE = 0;
+
     int mem_size;
     int time_quantum;
     int printing_time;
     char delim[] = " ,";
-    char idle_prog_name[] = 'prog_idle';
+    char idle_prog_name[] = "prog_idle";
 
     char config_data[80];
 
@@ -65,12 +68,18 @@ void run_computer() {
 
     config_file.close();
 
+    cout << "Memory Size: " << mem_size << endl;
+    cout << "Time Quantum: " << time_quantum << endl;
+    cout << "Printing Time: " << printing_time << endl;
+
     mem = new Memory(mem_size);
-    FILE* prog_file = load_prog(idle_prog_name, 0);
+    FILE* idle_prog_file = load_prog(idle_prog_name, 0);
+    shell = new Shell();
+    shell->shell_print_memory();
+
     //PCB *pcb_proc1 = new PCB();
     //pcb_proc1->process_set_registers();
 
-    //shell = new Shell();
     //CPU *cpu = new CPU();
     //cpu->cpu_operation();
 

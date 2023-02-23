@@ -22,10 +22,6 @@ FILE* load_prog(char *fname, int base){
     int num;
     int prog_read_counter = 0;
 
-    for (int mem_index = 0; mem_index < mem->size; mem_index++) {
-        mem->Mem[mem_index] = 0;
-    }
-
     for ( int line_counter = 0; line_counter < Ncode + Ndata; line_counter++ ){
         fgets(line, sizeof(line), fp);
         word = strtok(line, delim);

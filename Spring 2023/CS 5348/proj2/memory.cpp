@@ -10,6 +10,11 @@ Memory::Memory(int size){
 
 void Memory::mem_init(int M){
     this->Mem = new int[M];
+
+    for (int mem_index = 0; mem_index < M; mem_index++) {
+        this->Mem[mem_index] = 0;
+    }
+
     this->size = M;
 }
 
