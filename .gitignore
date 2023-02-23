@@ -1,6 +1,7 @@
 
 *.pdf
 *.out
+*.exe
 *.in
 *.txt
 *.o
