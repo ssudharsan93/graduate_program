@@ -19,11 +19,13 @@ public:
 
 class ReadyQueue {
 private:
+    int size;
     queue<PCB*> ProcessQ;
 public:
     ReadyQueue();
-    void enqueue(PCB* new_proc);
+    void enqueue(PCB *new_proc);
     PCB* dequeue();
+    int get_size()
 };
 
 class Scheduler {

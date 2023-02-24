@@ -33,14 +33,26 @@ void PCB::save_context(){
     this->PCB_AC = AC;
 }// Copy the updated register context data back to the PCB
 
-ReadyQueue::ReadyQueue(){ return; }
-void ReadyQueue::enqueue(PCB* new_proc){ return; }
+ReadyQueue::ReadyQueue(){ 
+    this->size = 0; 
+}
+void ReadyQueue::enqueue(PCB *new_proc){ 
+
+    this->ProcessQ.push(new_proc);
+    this->size = this->size + 1;
+    return; 
+}
 PCB* ReadyQueue::dequeue(){
+
     PCB* proc = this->ProcessQ.front();
     this->ProcessQ.pop();
+    this->size = this->size - 1;
     return proc; 
 }
 
+int ReadyQueue::get_size(){
+    return this->size();
+}
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
