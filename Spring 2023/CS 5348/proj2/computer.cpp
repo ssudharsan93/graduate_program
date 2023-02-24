@@ -3,9 +3,10 @@
 Memory* mem;
 Shell* shell;
 CPU *cpu;
+Loader *loader;
 Scheduler *scheduler;
-ReadyQueue *readyq;
 PCB* idlepcb;
+
 
 int TQ;
 int PT;
@@ -22,6 +23,10 @@ Shell* returnShell() {
 
 CPU* returnCPU(){
     return cpu;
+}
+
+Loader* returnLoader(){
+    return loader;
 }
 
 Scheduler* returnScheduler(){
@@ -66,7 +71,8 @@ void run_computer() {
     cout << "Printing Time: " << PT << endl;
 
     mem = new Memory(mem_size);
-    FILE* idle_prog_file = load_prog(idle_prog_name, 0);
+    loader = new Loader();
+    FILE* idle_prog_file = loader->load_prog(idle_prog_name, 0);
     idlepcb = new PCB();
     shell = new Shell();
     shell->shell_print_memory();
@@ -74,7 +80,7 @@ void run_computer() {
     //CPU *cpu = new CPU();
     //cpu->cpu_operation();
 
-    //load_finish(prog_file);
+    loader->load_finish(idle_prog_file);
 
 }
 

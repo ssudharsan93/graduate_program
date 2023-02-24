@@ -20,6 +20,7 @@ using namespace std;
 extern Memory *mem;
 extern Shell *shell;
 extern CPU *cpu;
+extern Loader *loader;
 extern Scheduler *scheduler;
 extern ReadyQueue *readyq;
 extern PCB* idlepcb;
@@ -31,6 +32,7 @@ extern int PT;
 Memory* returnMemory();
 Shell* returnShell();
 CPU* returnCPU();
+Loader* returnLoader();
 Scheduler* returnScheduler();
 ReadyQueue* returnReadyQueue();
 

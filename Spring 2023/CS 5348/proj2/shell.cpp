@@ -15,6 +15,9 @@ void Shell::shell_terminate_system() {
 
 void Shell::shell_submit_new_process(){
 
+    scheduler = returnScheduler();
+    loader = returnLoader();
+
     char prog_name_char;
     char *input_program_file = new char[80];
     int base;
@@ -28,7 +31,10 @@ void Shell::shell_submit_new_process(){
 
     cin >> base;
 
-    BASE = base;
+    scheduler->process_submit(base);
+    //load_prog(input_program_file, base);
+
+
     return;
 
 }

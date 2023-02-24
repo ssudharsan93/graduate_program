@@ -1,6 +1,6 @@
 #include "computer.h"
 
-FILE* load_prog(char *fname, int base){
+FILE* Loader::load_prog(char *fname, int base){
     char delim[] = " ";
     Memory *mem = returnMemory();
 
@@ -37,13 +37,6 @@ FILE* load_prog(char *fname, int base){
 
 }
 
-void load_finish(FILE *f){
-
-    Memory *mem = returnMemory();
-    for (int mem_index = 0; mem_index < mem->size; mem_index++) {
-        mem->Mem[mem_index] = 0;
-    }
-
+void Loader::load_finish(FILE *f){
     fclose(f);
-
 }
