@@ -1,6 +1,8 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include <queue>
+
 class PCB {
 private:
   int PID;
@@ -21,7 +23,7 @@ public:
 
 class ReadyQueue {
 private:
-    queue<PCB*> ProcessQ;
+    queue<PCB*> processQ;
 public:
     void enqueue(PCB *new_proc);
     PCB* dequeue();

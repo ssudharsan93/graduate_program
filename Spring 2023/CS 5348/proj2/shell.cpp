@@ -26,10 +26,8 @@ void Shell::shell_submit_new_process(){
     int prog_name_counter = 0;
 
     cout << "Input Program File and Base> ";
-    cin.ignore(80, '\n');
-    while( cin.get(prog_name_char) && prog_name_char != '\n' ) {
-        program_info[prog_name_counter++] = prog_name_char;
-    }
+    cin.ignore(256, '\n');
+    cin.get(program_info, 80);
 
     char *prog_arg = strtok(program_info, delim);
     input_program_file = prog_arg;

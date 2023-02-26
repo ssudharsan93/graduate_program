@@ -73,7 +73,9 @@ void run_computer() {
     mem = new Memory(mem_size);
     loader = new Loader();
     FILE* idle_prog_file = loader->load_prog(idle_prog_name, 0);
-    idlepcb = new PCB();
+    idlepcb = new PCB( 1, 0 );
+    loader->load_finish(idle_prog_file);
+    
     shell = new Shell();
     scheduler = new Scheduler();
     scheduler->process_init();
@@ -87,7 +89,11 @@ void run_computer() {
 
     scheduler->process_execute();
 
-    loader->load_finish(idle_prog_file);
+    delete scheduler;
+
+    cout << "Exiting Entire System" << endl;
+
+
 
 }
 

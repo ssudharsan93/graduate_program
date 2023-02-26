@@ -7,7 +7,6 @@
 #include <fstream>
 #include <cstring>
 #include <unistd.h>
-#include <queue>
 
 #include "memory.h"
 #include "cpu.h"

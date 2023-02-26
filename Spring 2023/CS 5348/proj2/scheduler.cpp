@@ -49,33 +49,32 @@ void PCB::print_contents(){
 }
 
 void ReadyQueue::enqueue(PCB *new_proc){ 
-    this->ProcessQ.push(new_proc);
+    this->processQ.push(new_proc);
 }
 PCB* ReadyQueue::dequeue(){
 
-    PCB* proc = this->ProcessQ.front();
-    this->ProcessQ.pop();
+    PCB* proc = this->processQ.front();
+    this->processQ.pop();
     return proc; 
 }
 
 int ReadyQueue::get_size(){
-    return this->ProcessQ.size();
+    return this->processQ.size();
 }
 
-//Initialize a PCB data structure for PCBs of multiple processes.
 Scheduler::Scheduler(){
     this->current_proc = NULL;
     this->pcb_structure = NULL;
 }
 
 Scheduler::~Scheduler(){
-    delete current_proc;
-    delete pcb_structure;
+    delete this->current_proc;
+    delete [] this->pcb_structure;
 }
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
-    pcb_structure = new PCB*[102];
+    this->pcb_structure = new PCB*[this->size_pcb_structure]();
 }
 
 // Create a PCB entry for a submitted process.
@@ -119,7 +118,6 @@ void Scheduler::process_context_switch(PCB *proc_to_be_switched_out, PCB *proc_t
     
     if (proc_to_be_switched_out == NULL) {
         proc_to_be_run->set_context();
-        this->current_proc = proc_to_be_run;
     } 
     
     else {
@@ -134,6 +132,8 @@ void Scheduler::process_context_switch(PCB *proc_to_be_switched_out, PCB *proc_t
 void Scheduler::process_init(){ 
     this->process_init_PCBs();
     this->process_init_readyQ();
+
+    int pcb_struct_cntr;
     return;
 }
 
@@ -167,13 +167,42 @@ void Scheduler::process_execute(){
 
     shell->shell_dump_readyq_information();
 
-    while ( readyq->get_size() != 0 ) {
-    
+    //while ( readyq->get_size() != 0 ) {
+    while( !TERMINATE ) {
+
+        int idle_loop = 0;        
+        while ( readyq->get_size() == 0 ) {
+
+            if ( this->current_proc == idlepcb ) {
+                idle_loop++;
+            }
+            
+            if ( this->current_proc == NULL) {
+                this->process_context_switch(this->current_proc, idlepcb);
+                this->current_proc = idlepcb;
+            }
+
+            cout << "Scheduler: Now Running: " << this->current_proc->get_PID() << endl;
+            cout << "Idle Loop Counter: " << idle_loop << endl;
+            idlepcb->print_contents();
+            int return_code = cpu->cpu_operation();
+            cout << "Return code: " << return_code << endl;
+            cout << endl;
+
+            if ( idle_loop == 4 ) {
+                    TERMINATE = true;
+                    break;
+            }
+
+        }
+
+        if ( TERMINATE ) { continue; }
+
         PCB* proc_to_be_run = this->process_fetch_readyQ();
         PCB* current_proc = this->current_proc;
         this->process_context_switch(current_proc, proc_to_be_run);
         
-        if ( current_proc != NULL ){
+        if ( current_proc != NULL  && current_proc != idlepcb ){
             this->process_insert_readyQ(this->current_proc);
         }
 
@@ -192,8 +221,8 @@ void Scheduler::process_execute(){
             this->process_exit();
         }
         else { continue; }
-
     }
+    //}
 
 }
 
