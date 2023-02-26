@@ -167,7 +167,6 @@ void Scheduler::process_execute(){
 
     shell->shell_dump_readyq_information();
 
-    //while ( readyq->get_size() != 0 ) {
     while( !TERMINATE ) {
 
         int idle_loop = 0;        
@@ -222,7 +221,6 @@ void Scheduler::process_execute(){
         }
         else { continue; }
     }
-    //}
 
 }
 
