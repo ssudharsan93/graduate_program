@@ -4,6 +4,10 @@ Memory::Memory(){
     this->mem_init(0);
 }
 
+Memory::~Memory(){
+    delete this->Mem;
+}
+
 Memory::Memory(int size){
     this->mem_init(size);
 }

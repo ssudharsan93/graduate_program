@@ -19,6 +19,7 @@ void CPU::cpu_fetch_instruction(){
     mem->mem_read();
     IR1 = MBR;
     PC = PC + 1;
+
     return;
 
 }    // Read the 2 instruction words from memory, the addresses are computed from PC
@@ -62,7 +63,7 @@ bool CPU::cpu_execute_instruction(){
             MAR = this->cpu_mem_address(IR1);
             mem = returnMemory();
             mem->mem_read();
-            if ( AC > 0 ) { PC = MBR; }
+            if ( AC > 0 ) { PC = this->cpu_mem_address(MBR); }
             break;
 
         case 7: //7 (print) Null Print the value in AC
@@ -75,9 +76,17 @@ bool CPU::cpu_execute_instruction(){
 
         case 9: //9 (shell) Code Execute the shell command according to code (elaborated later)
             shell = returnShell();
-            if ( IR1 == 2 ) { shell->shell_print_registers(); }
-            else if (IR1 == 3) { shell->shell_print_memory(); }
-            else { break; }
+            if ( IR1 == 2 ) { 
+                cout << endl;
+                cout << "Need to print registers to printer." << endl;
+            }
+            else if (IR1 == 3) {
+                cout << endl; 
+                cout << "Need to print memory to printer" << endl; 
+            }
+            else { 
+                break; 
+            }
             break;
 
         case 0: //0 (exit) Null End of the current program, null is 0 and is unused
@@ -104,6 +113,7 @@ int CPU::cpu_operation(){
         this->cpu_fetch_instruction();
         executing = this->cpu_execute_instruction();
         cycles_executed++;
+        
         if ( cycles_executed == TQ ){
             time_expiration = true;
         }

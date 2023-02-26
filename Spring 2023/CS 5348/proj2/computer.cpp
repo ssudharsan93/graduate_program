@@ -57,12 +57,12 @@ void run_computer() {
     int mem_size_read_counter = 0;
 
     config_file.getline(config_data, 80);
-    char *param = strtok(config_data, delim);
-    mem_size = atoi(param);
-    param = strtok(NULL, delim);
-    TQ = atoi(param);
-    param = strtok(NULL, delim);
-    PT = atoi(param);
+    char *config_arg = strtok(config_data, delim);
+    mem_size = atoi(config_arg);
+    config_arg = strtok(NULL, delim);
+    TQ = atoi(config_arg);
+    config_arg = strtok(NULL, delim);
+    PT = atoi(config_arg);
 
     config_file.close();
 
@@ -75,10 +75,17 @@ void run_computer() {
     FILE* idle_prog_file = loader->load_prog(idle_prog_name, 0);
     idlepcb = new PCB();
     shell = new Shell();
-    shell->shell_print_memory();
+    scheduler = new Scheduler();
+    scheduler->process_init();
+    //shell->shell_print_memory();
 
-    //CPU *cpu = new CPU();
-    //cpu->cpu_operation();
+    shell->shell_command();
+    shell->shell_command();
+    shell->shell_command();
+
+    //shell->shell_print_memory();
+
+    scheduler->process_execute();
 
     loader->load_finish(idle_prog_file);
 

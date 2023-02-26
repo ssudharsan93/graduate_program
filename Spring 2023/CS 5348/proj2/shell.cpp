@@ -18,23 +18,31 @@ void Shell::shell_submit_new_process(){
     scheduler = returnScheduler();
     loader = returnLoader();
 
+    char delim[] = " ";
     char prog_name_char;
+    char *program_info = new char[80];
     char *input_program_file = new char[80];
     int base;
     int prog_name_counter = 0;
 
     cout << "Input Program File and Base> ";
-
-    while( cin.get(prog_name_char) && !isspace(prog_name_char) ) {
-        input_program_file[prog_name_counter++] = prog_name_char;
+    cin.ignore(80, '\n');
+    while( cin.get(prog_name_char) && prog_name_char != '\n' ) {
+        program_info[prog_name_counter++] = prog_name_char;
     }
 
-    cin >> base;
+    char *prog_arg = strtok(program_info, delim);
+    input_program_file = prog_arg;
+    prog_arg = strtok(NULL, delim);
+    base = atoi(prog_arg);
+    
+    cout << "Program file name: " << input_program_file << endl;
+    cout << "Base: "  << base << endl;
 
     scheduler->process_submit(base);
-    //load_prog(input_program_file, base);
-
-
+    FILE *prog_file = loader->load_prog(input_program_file, base);
+    loader->load_finish(prog_file);
+    
     return;
 
 }
@@ -79,11 +87,43 @@ void Shell::shell_print_memory(){
     cout << endl;
 }    // Print out all the words in memory in integer form on the screen
 
+void Shell::shell_dump_readyq_information() {
+    
+    readyq = returnReadyQueue();
+
+    int q_size = readyq->get_size();
+
+    cout << endl;
+    cout << "=======================================" << endl;
+    cout << "            Ready Queue Dump : " << endl;
+    cout << "=======================================" << endl;
+
+    for ( int q_cntr = 0; q_cntr < q_size; q_cntr++ ){
+
+        PCB* proc = readyq->dequeue();
+        cout << "\t------------------------------------" << endl;
+        cout << "\t             Process \tPID = " << proc->get_PID() << endl;
+        cout << "\t------------------------------------" << endl;
+        proc->print_contents();
+        readyq->enqueue(proc);
+
+    }
+
+    cout << endl;
+    cout << "=======================================" << endl;
+    cout << endl;
+
+    return;
+
+}
+
 void Shell::shell_dump_process_information() {
+    cout << "Process Information" << endl;
     return;
 }
 
 void Shell::shell_dump_spools() {
+    cout << "Spool!!!" << endl;
     return;
 }
 
@@ -91,36 +131,41 @@ void Shell::shell_command(){
 
     int cmd;
 
-    while ( !TERMINATE ) {
+    //while ( !TERMINATE ) {
 
         cout << "Shell Command> ";
         cin >> cmd;
 
+        //if (!isdigit(cmd)) { continue; }
+
         switch(cmd){
 
-          case 0:
-              this->shell_terminate_system();
-              break;
-          case 1:
-              this->shell_submit_new_process();
-              break;
-          case 2:
-              this->shell_print_registers();
-              break;
-          case 3:
-              this->shell_print_memory();
-              break;
-          case 4:
-              this->shell_dump_process_information();
-              break;
-          case 5:
-              this->shell_dump_spools();
-              break;
-          default:
-              break;
+            case 0:
+                this->shell_terminate_system();
+                break;
+            case 1:
+                this->shell_submit_new_process();
+                break;
+            case 2:
+                this->shell_print_registers();
+                break;
+            case 3:
+                this->shell_print_memory();
+                break;
+            case 4:
+                this->shell_dump_readyq_information();
+                break;
+            case 5:
+                this->shell_dump_process_information();
+                break;
+            case 6:
+                this->shell_dump_spools();
+                break;
+            default:
+                break;
 
         }
-    }
+    //}
 
     return;
 

@@ -4,38 +4,49 @@ ReadyQueue *readyq;
 
 PCB::PCB() {
     this->PID = 0;
-    this->PCB_PC = 0;
-    this->PCB_AC = 0;
-    this->PCB_Base = 0;
-    this->PCB_MAR = 0;
-    this->PCB_MBR = 0;
+    this->proc_PC = 0;
+    this->proc_AC = 0;
+    this->proc_Base = 0;
+    this->proc_MAR = 0;
+    this->proc_MBR = 0;
 }
 
 PCB::PCB(int PID, int base) {
     this->PID = PID;
-    this->PCB_PC = base;
-    this->PCB_AC = 0;
-    this->PCB_Base = base;
-    this->PCB_MAR = 0;
-    this->PCB_MBR = 0;
+    this->proc_PC = base;
+    this->proc_AC = 0;
+    this->proc_Base = base;
+    this->proc_MAR = 0;
+    this->proc_MBR = 0;
 }
 
 void PCB::set_context(){
-    PC = this->PCB_PC;
-    MAR = this->PCB_MAR;
-    MBR = this->PCB_MBR;
-    AC = this->PCB_AC;
-    BASE = this->PCB_Base;
+    PC = this->proc_PC;
+    MAR = this->proc_MAR;
+    MBR = this->proc_MBR;
+    AC = this->proc_AC;
+    BASE = this->proc_Base;
 } // Copy the PCB context data to the registers
 
 void PCB::save_context(){
-    this->PCB_PC = PC;
-    this->PCB_MAR = MAR;
-    this->PCB_MBR = MBR;
-    this->PCB_AC = AC;
+    this->proc_PC = PC;
+    this->proc_MAR = MAR;
+    this->proc_MBR = MBR;
+    this->proc_AC = AC;
 }// Copy the updated register context data back to the PCB
 
 int PCB::get_PID(){ return this->PID; }
+
+void PCB::print_contents(){
+    cout << endl;
+    cout << "\tPID: " << this->PID << endl;
+    cout << "\tPC: " << this->proc_PC << endl;
+    cout << "\tBase: " << this->proc_Base << endl;
+    cout << "\tAC: " << this->proc_AC << endl;
+    cout << "\tMAR: " << this->proc_MAR << endl;
+    cout << "\tMBR: " << this->proc_MBR << endl;
+    cout << endl;
+}
 
 void ReadyQueue::enqueue(PCB *new_proc){ 
     this->ProcessQ.push(new_proc);
@@ -52,13 +63,25 @@ int ReadyQueue::get_size(){
 }
 
 //Initialize a PCB data structure for PCBs of multiple processes.
+Scheduler::Scheduler(){
+    this->current_proc = NULL;
+    this->pcb_structure = NULL;
+}
+
+Scheduler::~Scheduler(){
+    delete current_proc;
+    delete pcb_structure;
+}
+
+//Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
-    pcb_structure = new PCB*[100];
+    pcb_structure = new PCB*[102];
 }
 
 // Create a PCB entry for a submitted process.
 PCB* Scheduler::process_init_PCB(int PID, int base){
 
+    cout << "PID: " << PID << " Base: " << base << endl;
     PCB* new_proc = new PCB(PID, base);
     return new_proc;
 }
@@ -96,12 +119,12 @@ void Scheduler::process_context_switch(PCB *proc_to_be_switched_out, PCB *proc_t
     
     if (proc_to_be_switched_out == NULL) {
         proc_to_be_run->set_context();
+        this->current_proc = proc_to_be_run;
     } 
     
     else {
         proc_to_be_switched_out->save_context();
         proc_to_be_run->set_context();
-        this->process_insert_readyQ(proc_to_be_switched_out);
     }
     
     return;
@@ -121,25 +144,57 @@ void Scheduler::process_submit(int base){
     
     PCB* new_proc;
     
-    for ( int pcb_struct_cntr = 0; pcb_struct_cntr < this->size_pcb_structure; pcb_struct_cntr++ ){
-        if ( pcb_structure[pcb_struct_cntr] != NULL ){
-            new_proc = process_init_PCB(pcb_struct_cntr, base);
+    int pcb_struct_cntr;
+    
+    for ( pcb_struct_cntr = 2; pcb_struct_cntr < this->size_pcb_structure; pcb_struct_cntr++ ){
+        if ( this->pcb_structure[pcb_struct_cntr] == NULL ){
+            break;
         }
     }
 
-    process_insert_readyQ(new_proc);
+    new_proc = process_init_PCB(pcb_struct_cntr, base);
+    this->pcb_structure[pcb_struct_cntr] = new_proc;
+    this->process_insert_readyQ(new_proc);
+
 }
 
 //Handle process execution by calling other functions, including process_fetch_readyQ and cpu_operation (in cpu.c).
 //If cpu_operation returns as Exit, then call process_exit.
 void Scheduler::process_execute(){
-    PCB* proc_to_be_run = this->process_fetch_readyQ();
-    this->process_context_switch(this->current_proc, proc_to_be_run);
+    
     cpu = returnCPU();
-    int return_code = cpu->cpu_operation();
+    shell = returnShell();
 
-    if ( return_code == 0 ) { this->process_exit(); }
-    else {  this->process_fetch_readyQ(); }
+    shell->shell_dump_readyq_information();
+
+    while ( readyq->get_size() != 0 ) {
+    
+        PCB* proc_to_be_run = this->process_fetch_readyQ();
+        PCB* current_proc = this->current_proc;
+        this->process_context_switch(current_proc, proc_to_be_run);
+        
+        if ( current_proc != NULL ){
+            this->process_insert_readyQ(this->current_proc);
+        }
+
+        this->current_proc = proc_to_be_run;
+        
+        cout << "Scheduler: Now Running: " << proc_to_be_run->get_PID() << endl;
+        
+        int return_code = cpu->cpu_operation();
+
+        cout << "Return code: " << return_code << endl;
+        cout << endl;
+
+        if ( return_code == 0 ) {
+            cout << "Process PID: " << this->current_proc->get_PID() << " exiting..." << endl;
+            shell->shell_dump_readyq_information();
+            this->process_exit();
+        }
+        else { continue; }
+
+    }
+
 }
 
 //Clean up for the exiting process, including calling dispose_PCB and print_end_spool, etc.
@@ -148,4 +203,6 @@ void Scheduler::process_exit(){
     return; 
 }
 
-int Scheduler::get_num_processes(){ return this->num_processes; }
+int Scheduler::get_num_processes(){ 
+    return this->num_processes; 
+}
