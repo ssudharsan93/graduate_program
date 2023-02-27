@@ -65,23 +65,53 @@ int ReadyQueue::get_size(){
 Scheduler::Scheduler(){
     this->current_proc = NULL;
     this->pcb_structure = NULL;
+    this->pcb_structure1 = NULL;
 }
 
 Scheduler::~Scheduler(){
     delete this->current_proc;
     delete [] this->pcb_structure;
+    delete this->pcb_structure1;
 }
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
     this->pcb_structure = new PCB*[this->size_pcb_structure]();
+    this->pcb_structure1 = new unordered_map<int, PCB*>();
 }
 
 // Create a PCB entry for a submitted process.
-PCB* Scheduler::process_init_PCB(int PID, int base){
+PCB* Scheduler::process_init_PCB(int base){
 
-    cout << "PID: " << PID << " Base: " << base << endl;
-    PCB* new_proc = new PCB(PID, base);
+    if ( base == 0 ){    
+        idlepcb = new PCB(1, 0);
+
+        this->pcb_structure[1] = idlepcb;
+        pair<int, PCB*> idle_pid_proc_pair = make_pair(1, idlepcb);
+        this->pcb_structure1->insert(idle_pid_proc_pair);
+
+        return idlepcb;
+    
+    }
+        
+    int pcb_struct_cntr;
+    
+    for ( pcb_struct_cntr = 2; pcb_struct_cntr < this->size_pcb_structure; pcb_struct_cntr++ ){
+        if ( this->pcb_structure[pcb_struct_cntr] == NULL ){
+            break;
+        }
+    }
+
+    PCB* new_proc = new PCB(pcb_struct_cntr, base);
+    
+    this->pcb_structure[pcb_struct_cntr] = new_proc;
+    auto pcb_struct_it = this->pcb_structure1->find(pcb_struct_cntr);
+    
+    if ( pcb_struct_it == this->pcb_structure1->end() ) {
+        pair<int, PCB*> pid_proc_pair = make_pair(pcb_struct_cntr, new_proc);
+        this->pcb_structure1->insert(pid_proc_pair);
+    }
+    
     return new_proc;
 }
 
@@ -95,6 +125,27 @@ void Scheduler::process_dispose_PCB(){
     
     return;
 
+}
+
+void Scheduler::process_dump_PCB(){
+
+    auto pcb_struct_begin_it = this->pcb_structure1->begin();
+    auto pcb_struct_end_it = this->pcb_structure1->end();
+    PCB* curr_proc;
+
+    for ( auto pcb_struct_it = pcb_struct_begin_it; pcb_struct_it != pcb_struct_end_it; ++pcb_struct_it ) {
+        
+        curr_proc = pcb_struct_it->second;
+
+        cout << "\t--------------------------------------" << endl;
+        cout << "\t               Process                " << endl;
+        cout << "\t--------------------------------------" << endl;
+
+        curr_proc->print_contents();
+
+        cout << "\t--------------------------------------" << endl;
+
+    }
 }
 
 //Initialize a ready queue data structure.
@@ -111,6 +162,23 @@ void Scheduler::process_insert_readyQ(PCB *new_proc){
 PCB* Scheduler::process_fetch_readyQ(){
     PCB* fetched_proc = readyq->dequeue();
     return fetched_proc;
+}
+
+void Scheduler::process_dump_readyQ() {
+    
+    readyq = returnReadyQueue();
+
+    int q_size = readyq->get_size();
+    
+    for ( int q_cntr = 0; q_cntr < q_size; q_cntr++ ){
+    
+        PCB* proc = readyq->dequeue();
+        cout << "\tProcess "<< q_cntr << ":\tPID = " << proc->get_PID() << endl;
+        readyq->enqueue(proc);
+
+    }
+
+    return;
 }
 
 //Context switch two processes. Pass 2 PCBs as parameters. Need to consider the case of only switching one process in/out.
@@ -140,21 +208,15 @@ void Scheduler::process_init(){
 //Handle process submission by calling other functions in the module,
 //including process_init_PCB, process_insert_readyQ, and print_init_spool.
 //(called by shell.c)
-void Scheduler::process_submit(int base){ 
+void Scheduler::process_submit(int base){
     
     PCB* new_proc;
-    
-    int pcb_struct_cntr;
-    
-    for ( pcb_struct_cntr = 2; pcb_struct_cntr < this->size_pcb_structure; pcb_struct_cntr++ ){
-        if ( this->pcb_structure[pcb_struct_cntr] == NULL ){
-            break;
-        }
-    }
 
-    new_proc = process_init_PCB(pcb_struct_cntr, base);
-    this->pcb_structure[pcb_struct_cntr] = new_proc;
-    this->process_insert_readyQ(new_proc);
+    new_proc = process_init_PCB(base);
+
+    if ( base != 0 ){
+        this->process_insert_readyQ(new_proc);
+    }
 
 }
 

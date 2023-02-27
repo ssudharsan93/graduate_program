@@ -72,13 +72,14 @@ void run_computer() {
 
     mem = new Memory(mem_size);
     loader = new Loader();
-    FILE* idle_prog_file = loader->load_prog(idle_prog_name, 0);
-    idlepcb = new PCB( 1, 0 );
-    loader->load_finish(idle_prog_file);
-    
     shell = new Shell();
     scheduler = new Scheduler();
     scheduler->process_init();
+    
+    FILE* idle_prog_file = loader->load_prog(idle_prog_name, 0);
+    loader->load_finish(idle_prog_file);
+    scheduler->process_submit(0);
+
     //shell->shell_print_memory();
 
     shell->shell_command();
@@ -86,6 +87,8 @@ void run_computer() {
     shell->shell_command();
 
     //shell->shell_print_memory();
+
+    shell->shell_dump_process_information();
 
     scheduler->process_execute();
 

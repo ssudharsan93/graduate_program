@@ -86,26 +86,15 @@ void Shell::shell_print_memory(){
 }    // Print out all the words in memory in integer form on the screen
 
 void Shell::shell_dump_readyq_information() {
-    
-    readyq = returnReadyQueue();
 
-    int q_size = readyq->get_size();
+    scheduler = returnScheduler();
 
     cout << endl;
     cout << "=======================================" << endl;
     cout << "            Ready Queue Dump : " << endl;
     cout << "=======================================" << endl;
 
-    for ( int q_cntr = 0; q_cntr < q_size; q_cntr++ ){
-
-        PCB* proc = readyq->dequeue();
-        cout << "\t------------------------------------" << endl;
-        cout << "\t             Process \tPID = " << proc->get_PID() << endl;
-        cout << "\t------------------------------------" << endl;
-        proc->print_contents();
-        readyq->enqueue(proc);
-
-    }
+    scheduler->process_dump_readyQ();
 
     cout << endl;
     cout << "=======================================" << endl;
@@ -116,7 +105,20 @@ void Shell::shell_dump_readyq_information() {
 }
 
 void Shell::shell_dump_process_information() {
-    cout << "Process Information" << endl;
+    
+    scheduler = returnScheduler();
+
+    cout << endl;
+    cout << "=======================================" << endl;
+    cout << "   PCB Structure (Processes) Dump : " << endl;
+    cout << "=======================================" << endl;
+
+    scheduler->process_dump_PCB();
+
+    cout << endl;
+    cout << "=======================================" << endl;
+    cout << endl;
+
     return;
 }
 

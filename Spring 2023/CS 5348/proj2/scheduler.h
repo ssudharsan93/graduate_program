@@ -33,7 +33,11 @@ public:
 
 class Scheduler {
 private:
-    PCB **pcb_structure;
+    PCB **pcb_structure; // need to change this to a map.
+                         // also need to test the unordered_map import on the school servers.
+                         // need to implement a hashing algorithm, such as randomly getting a
+                         // number and assigning it as a pid.
+    unordered_map<int, PCB*> *pcb_structure1;
     PCB *current_proc;
     int size_pcb_structure = 102;
     int num_processes = 1;
@@ -42,12 +46,14 @@ public:
     ~Scheduler();
     void process_set_registers();
     void process_init_PCBs(); //Initialize a PCB data structure for PCBs of multiple processes.
-    PCB* process_init_PCB(int PID, int base); // Create a PCB entry for a submitted process.
+    PCB* process_init_PCB(int base); // Create a PCB entry for a submitted process.
     void process_dispose_PCB(); //Dispose a PCB entry for an exiting process.
+    void process_dump_PCB();
     void process_init_readyQ(); //Initialize a ready queue data structure.
     void process_insert_readyQ(PCB *new_proc); //Insert the PCB of a newly submitted process into the ready queue.
     PCB* process_fetch_readyQ(); //Fetch a process to execute from ready queue based on the CPU scheduling algorithm.
                                  //It returns the fetched PCB pointer.
+    void process_dump_readyQ();
     void process_context_switch(PCB *proc_to_be_switched_out, PCB *proc_to_be_run);
                                   //Context switch two processes. Pass 2 PCBs as parameters.
                                    //Need to consider the case of only switching one process in/out.
