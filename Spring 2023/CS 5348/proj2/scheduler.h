@@ -33,14 +33,8 @@ public:
 
 class Scheduler {
 private:
-    PCB **pcb_structure; // need to change this to a map.
-                         // also need to test the unordered_map import on the school servers.
-                         // need to implement a hashing algorithm, such as randomly getting a
-                         // number and assigning it as a pid.
     unordered_map<int, PCB*> *pcb_structure1;
     PCB *current_proc;
-    int size_pcb_structure = 102;
-    int num_processes = 1;
 public:
     Scheduler();
     ~Scheduler();

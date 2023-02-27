@@ -70,13 +70,11 @@ Scheduler::Scheduler(){
 
 Scheduler::~Scheduler(){
     delete this->current_proc;
-    delete [] this->pcb_structure;
     delete this->pcb_structure1;
 }
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
-    this->pcb_structure = new PCB*[this->size_pcb_structure]();
     this->pcb_structure1 = new unordered_map<int, PCB*>();
 }
 
@@ -86,29 +84,23 @@ PCB* Scheduler::process_init_PCB(int base){
     if ( base == 0 ){    
         idlepcb = new PCB(1, 0);
 
-        this->pcb_structure[1] = idlepcb;
         pair<int, PCB*> idle_pid_proc_pair = make_pair(1, idlepcb);
         this->pcb_structure1->insert(idle_pid_proc_pair);
 
         return idlepcb;
     
     }
-        
-    int pcb_struct_cntr;
-    
-    for ( pcb_struct_cntr = 2; pcb_struct_cntr < this->size_pcb_structure; pcb_struct_cntr++ ){
-        if ( this->pcb_structure[pcb_struct_cntr] == NULL ){
-            break;
-        }
-    }
 
-    PCB* new_proc = new PCB(pcb_struct_cntr, base);
+    PROC_SEEN_BY_COMPUTER = PROC_SEEN_BY_COMPUTER + 1;
+
+    cout << "PID will be " << PROC_SEEN_BY_COMPUTER << endl;
+
+    PCB* new_proc = new PCB(PROC_SEEN_BY_COMPUTER, base);
     
-    this->pcb_structure[pcb_struct_cntr] = new_proc;
-    auto pcb_struct_it = this->pcb_structure1->find(pcb_struct_cntr);
+    auto pcb_struct_it = this->pcb_structure1->find(PROC_SEEN_BY_COMPUTER);
     
     if ( pcb_struct_it == this->pcb_structure1->end() ) {
-        pair<int, PCB*> pid_proc_pair = make_pair(pcb_struct_cntr, new_proc);
+        pair<int, PCB*> pid_proc_pair = make_pair(PROC_SEEN_BY_COMPUTER, new_proc);
         this->pcb_structure1->insert(pid_proc_pair);
     }
     
@@ -118,7 +110,6 @@ PCB* Scheduler::process_init_PCB(int base){
 //Dispose a PCB entry for an exiting process.
 void Scheduler::process_dispose_PCB(){
     
-    this->pcb_structure[this->current_proc->get_PID()] = NULL;
     this->pcb_structure1->erase(this->current_proc->get_PID());
     this->process_dump_PCB();
     PCB* proc_to_be_deleted = this->current_proc;

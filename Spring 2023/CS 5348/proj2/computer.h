@@ -27,6 +27,7 @@ extern PCB* idlepcb;
 extern bool TERMINATE;
 extern int TQ;
 extern int PT;
+extern int PROC_SEEN_BY_COMPUTER;
 
 Memory* returnMemory();
 Shell* returnShell();

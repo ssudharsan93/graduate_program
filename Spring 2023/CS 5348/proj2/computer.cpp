@@ -12,6 +12,7 @@ int TQ;
 int PT;
 
 bool TERMINATE;
+int PROC_SEEN_BY_COMPUTER;
 
 Memory* returnMemory() {
     return mem;
@@ -40,6 +41,7 @@ ReadyQueue* returnReadyQueue(){
 void run_computer() {
 
     TERMINATE = 0;
+    PROC_SEEN_BY_COMPUTER = 1;
 
     int mem_size;
     char delim[] = " ,";
