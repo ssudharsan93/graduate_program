@@ -43,6 +43,8 @@ void run_computer() {
     TERMINATE = 0;
     PROC_SEEN_BY_COMPUTER = 1;
 
+    pthread_t shell_thread;
+
     int mem_size;
     char delim[] = " ,";
     char idle_prog_name[] = "prog_idle";
@@ -82,22 +84,23 @@ void run_computer() {
     loader->load_finish(idle_prog_file);
     scheduler->process_submit(0);
 
-    //shell->shell_print_memory();
-
     shell->shell_command();
-    shell->shell_command();
-    shell->shell_command();
-
-    //shell->shell_print_memory();
-
-    shell->shell_dump_process_information();
 
     scheduler->process_execute();
 
+    
+/*
+    pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
+
+    while (!TERMINATE) {
+        scheduler->process_execute();
+    }
+
+    pthread_join(shell_thread, NULL); 
+*/
     delete scheduler;
 
     cout << "Exiting Entire System" << endl;
-
 
 
 }

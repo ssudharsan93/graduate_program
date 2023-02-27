@@ -9,7 +9,7 @@ void Shell::shell_init(){
 }            // Initialize the shell module
 
 void Shell::shell_terminate_system() {
-    TERMINATE = 1;
+    TERMINATE = true;
     return;
 }
 
@@ -26,8 +26,9 @@ void Shell::shell_submit_new_process(){
     int prog_name_counter = 0;
 
     cout << "Input Program File and Base> ";
-    cin.ignore(256, '\n');
-    cin.get(program_info, 80);
+    cout.flush();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.getline(program_info, 80);
 
     char *prog_arg = strtok(program_info, delim);
     input_program_file = prog_arg;
@@ -40,6 +41,14 @@ void Shell::shell_submit_new_process(){
     scheduler->process_submit(base);
     FILE *prog_file = loader->load_prog(input_program_file, base);
     loader->load_finish(prog_file);
+
+    this->shell_dump_process_information();
+    this->shell_dump_readyq_information();
+    this->shell_print_memory();
+    this->shell_print_registers();
+
+    //delete [] program_info;
+    //delete [] input_program_file;
     
     return;
 
@@ -129,49 +138,58 @@ void Shell::shell_dump_spool_information() {
 
 void Shell::shell_command(){
 
-    int cmd;
+    int cmd = -1;
+    char input;
 
-    //while ( !TERMINATE ) {
+    bool wrong_input = true;
 
+    while ( wrong_input && !TERMINATE ) {
         cout << "Shell Command> ";
-        cin >> cmd;
+        cin.clear();
+        cin.get(input);
 
-        //if (!isdigit(cmd)) { continue; }
+        if ( !isdigit(input) || isspace(input) ) { 
+            continue;
+        }
+        
+        else {
+            cmd = ( (int) input ) - ( (int) '0' );
+            wrong_input = false;
+        }
 
         switch(cmd){
-
             case 0:
                 this->shell_terminate_system();
-                break;
+                continue;
             case 1:
                 this->shell_submit_new_process();
-                break;
+                continue;
             case 2:
                 this->shell_print_registers();
-                break;
+                continue;
             case 3:
                 this->shell_print_memory();
-                break;
+                continue;
             case 4:
                 this->shell_dump_readyq_information();
-                break;
+                continue;
             case 5:
                 this->shell_dump_process_information();
-                break;
+                continue;
             case 6:
                 this->shell_dump_spool_information();
-                break;
+                continue;
             default:
-                break;
-
+                wrong_input = true;
         }
-    //}
+    }
 
     return;
 
 } // For each shell command code, call the corresponding functions.
  // Input cmd is the command code.
 
-int shell_main() {
-    return 0;
+void *shell_main(void *arg) {
+    Shell *shell = (Shell*) arg;
+    shell->shell_command();
 }

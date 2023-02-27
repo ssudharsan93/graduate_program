@@ -61,7 +61,6 @@ public:
                             //If cpu_operation returns as Exit, then call process_exit.
     void process_exit(); //Clean up for the exiting process,
                          //including calling dispose_PCB and print_end_spool, etc.
-    int get_num_processes();
 };
 
 #endif SCHEDULER_H

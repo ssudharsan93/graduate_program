@@ -64,7 +64,6 @@ int ReadyQueue::get_size(){
 
 Scheduler::Scheduler(){
     this->current_proc = NULL;
-    this->pcb_structure = NULL;
     this->pcb_structure1 = NULL;
 }
 
@@ -220,8 +219,6 @@ void Scheduler::process_execute(){
     cpu = returnCPU();
     shell = returnShell();
 
-    shell->shell_dump_readyq_information();
-
     while( !TERMINATE ) {
 
         int idle_loop = 0;        
@@ -234,18 +231,6 @@ void Scheduler::process_execute(){
             if ( this->current_proc == NULL) {
                 this->process_context_switch(this->current_proc, idlepcb);
                 this->current_proc = idlepcb;
-            }
-
-            cout << "Scheduler: Now Running: " << this->current_proc->get_PID() << endl;
-            cout << "Idle Loop Counter: " << idle_loop << endl;
-            idlepcb->print_contents();
-            int return_code = cpu->cpu_operation();
-            cout << "Return code: " << return_code << endl;
-            cout << endl;
-
-            if ( idle_loop == 4 ) {
-                    TERMINATE = true;
-                    break;
             }
 
         }
@@ -283,8 +268,4 @@ void Scheduler::process_execute(){
 void Scheduler::process_exit(){
     this->process_dispose_PCB();
     return; 
-}
-
-int Scheduler::get_num_processes(){ 
-    return this->num_processes; 
 }

@@ -17,4 +17,6 @@ public:
                                    // Input cmd is the command code.
 };
 
+void *shell_main(void *arg);
+
 #endif SHELL_H
