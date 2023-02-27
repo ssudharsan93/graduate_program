@@ -119,6 +119,8 @@ PCB* Scheduler::process_init_PCB(int base){
 void Scheduler::process_dispose_PCB(){
     
     this->pcb_structure[this->current_proc->get_PID()] = NULL;
+    this->pcb_structure1->erase(this->current_proc->get_PID());
+    this->process_dump_PCB();
     PCB* proc_to_be_deleted = this->current_proc;
     delete proc_to_be_deleted;
     this->current_proc = NULL;
