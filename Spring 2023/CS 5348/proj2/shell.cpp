@@ -120,7 +120,7 @@ void Shell::shell_dump_process_information() {
     return;
 }
 
-void Shell::shell_dump_spools() {
+void Shell::shell_dump_spool_information() {
     cout << "Spool!!!" << endl;
     return;
 }
@@ -157,7 +157,7 @@ void Shell::shell_command(){
                 this->shell_dump_process_information();
                 break;
             case 6:
-                this->shell_dump_spools();
+                this->shell_dump_spool_information();
                 break;
             default:
                 break;
