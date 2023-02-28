@@ -9,6 +9,8 @@ PCB::PCB() {
     this->proc_Base = 0;
     this->proc_MAR = 0;
     this->proc_MBR = 0;
+    this->proc_IR0 = 0;
+    this->proc_IR1 = 0;
 }
 
 PCB::PCB(int PID, int base) {
@@ -18,6 +20,8 @@ PCB::PCB(int PID, int base) {
     this->proc_Base = base;
     this->proc_MAR = 0;
     this->proc_MBR = 0;
+    this->proc_IR0 = 0;
+    this->proc_IR1 = 0;
 }
 
 void PCB::set_context(){
@@ -26,6 +30,8 @@ void PCB::set_context(){
     MBR = this->proc_MBR;
     AC = this->proc_AC;
     BASE = this->proc_Base;
+    IR0 = this->proc_IR0;
+    IR1 = this->proc_IR1;
 } // Copy the PCB context data to the registers
 
 void PCB::save_context(){
@@ -33,6 +39,8 @@ void PCB::save_context(){
     this->proc_MAR = MAR;
     this->proc_MBR = MBR;
     this->proc_AC = AC;
+    this->proc_IR0 = IR0;
+    this->proc_IR1 = IR1;
 }// Copy the updated register context data back to the PCB
 
 int PCB::get_PID(){ return this->PID; }
@@ -123,13 +131,14 @@ void Scheduler::process_dump_PCB(){
     auto pcb_struct_end_it = this->pcb_structure->end();
     PCB* curr_proc;
 
+    cout << "===========================" << endl;
+    cout << "       PCB Dump            " << endl;
+    cout << "===========================" << endl;
+    cout << "Index: [ Filename:XXXXX, PID:#, BASE:#, PC:#, IR0:#, IR1:#, AC:#, MAR:#, MBR:# ]" << endl;
+
     for ( auto pcb_struct_it = pcb_struct_begin_it; pcb_struct_it != pcb_struct_end_it; ++pcb_struct_it ) {
         
         curr_proc = pcb_struct_it->second;
-
-        cout << "\t--------------------------------------" << endl;
-        cout << "\t               Process                " << endl;
-        cout << "\t--------------------------------------" << endl;
 
         curr_proc->print_contents();
 
@@ -159,13 +168,16 @@ void Scheduler::process_dump_readyQ() {
     readyq = returnReadyQueue();
 
     int q_size = readyq->get_size();
+
+    cout << "===========================" << endl;
+    cout << "      ReadyQ Dump          " << endl;
+    cout << "===========================" << endl;
+    cout << "Index: Process ID" << endl;
     
     for ( int q_cntr = 0; q_cntr < q_size; q_cntr++ ){
-    
         PCB* proc = readyq->dequeue();
-        cout << "\tProcess "<< q_cntr << ":\tPID = " << proc->get_PID() << endl;
+        cout << q_cntr << ": " << proc->get_PID() << endl;
         readyq->enqueue(proc);
-
     }
 
     return;

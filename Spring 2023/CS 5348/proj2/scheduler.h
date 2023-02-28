@@ -12,6 +12,8 @@ private:
   int proc_Base;
   int proc_MAR;
   int proc_MBR;
+  int proc_IR0;
+  int proc_IR1;
 
 public:
     PCB();

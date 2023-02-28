@@ -7,7 +7,6 @@ Loader *loader;
 Scheduler *scheduler;
 PCB* idlepcb;
 
-
 int TQ;
 int PT;
 
