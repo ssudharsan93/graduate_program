@@ -44,8 +44,6 @@ void Shell::shell_submit_new_process(){
 
     this->shell_dump_process_information();
     this->shell_dump_readyq_information();
-    this->shell_print_memory();
-    this->shell_print_registers();
 
     //delete [] program_info;
     //delete [] input_program_file;

@@ -33,7 +33,7 @@ public:
 
 class Scheduler {
 private:
-    unordered_map<int, PCB*> *pcb_structure1;
+    unordered_map<int, PCB*> *pcb_structure;
     PCB *current_proc;
 public:
     Scheduler();
