@@ -84,19 +84,20 @@ void run_computer() {
     loader->load_finish(idle_prog_file);
     scheduler->process_submit(0);
 
-    shell->shell_command();
+    //shell->shell_command();
 
-    scheduler->process_execute();
+    //scheduler->process_execute();
     
-    //pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
+    pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
 
     while( !TERMINATE ) {
+        //cout << "Executing process";
+        usleep(500);
         scheduler->process_execute();
     }
 
-    //pthread_join(shell_thread, NULL); 
+    pthread_join(shell_thread, NULL); 
     
-
     delete scheduler;
 
     cout << "Exiting Entire System" << endl;

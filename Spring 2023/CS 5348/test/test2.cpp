@@ -20,7 +20,6 @@ void *prompt(void *arg) {
         cout << "1 for output that should be printed," << endl;
         cout << "and 0 for terminating the system. " << endl;
         cout << "Input> ";
-        cout << endl;
 
         cin >> input;
 

@@ -176,7 +176,7 @@ void Scheduler::process_dump_readyQ() {
 //Context switch two processes. Pass 2 PCBs as parameters. Need to consider the case of only switching one process in/out.
 void Scheduler::process_context_switch(PCB *proc_to_be_switched_out, PCB *proc_to_be_run){
     
-    if (proc_to_be_switched_out == NULL) {
+    if ( proc_to_be_switched_out == NULL ) {
         proc_to_be_run->set_context();
     } 
     
@@ -219,58 +219,42 @@ void Scheduler::process_execute(){
     
     cpu = returnCPU();
 
-    //int idle_loop = 0;
-
-    while( !TERMINATE ) {
-
-        if ( readyq->get_size() == 0 ) {
-    //       cout << "Idle Loop Counter: " << idle_loop << endl;
-
-    //       if ( idle_loop ==  100000 ) {
-    //            TERMINATE = true;
-    //       }
-            
-            if ( this->current_proc == NULL) {
-                this->process_context_switch(this->current_proc, idlepcb);
-                this->current_proc = idlepcb;
-            }
-
-    //       idle_loop = idle_loop + 1;
-
-        } else { 
-          
-            PCB* proc_to_be_run = this->process_fetch_readyQ();
-            PCB* current_proc = this->current_proc;
-            this->process_context_switch(current_proc, proc_to_be_run);
-
-            this->current_proc = proc_to_be_run;
-
-            cout << "Scheduler: Now Running: " << this->current_proc->get_PID() << endl;
-
-        }
-
-        int return_code = cpu->cpu_operation();
+    if ( readyq->get_size() == 0 ) {
         
-        if ( return_code == 0 ) {
+        this->process_context_switch(this->current_proc, idlepcb);
+        this->current_proc = idlepcb;
 
-            if ( this->current_proc == idlepcb ) { continue; }
-            cout << "Process PID: " << this->current_proc->get_PID() << " exiting..." << endl;
-            this->process_exit();
+    } else { 
         
-        } else {
-        
-            if ( current_proc != idlepcb ){
+        PCB *proc_to_be_run = this->process_fetch_readyQ();
+        PCB *current_proc = this->current_proc;
+        this->process_context_switch(current_proc, proc_to_be_run);
 
-                cout << "Scheduler: Ran: " << this->current_proc->get_PID() << endl;
-                cout << "Return code: " << return_code << endl;
-                cout << endl;
-                this->process_insert_readyQ(this->current_proc);
-            
-            }
+        this->current_proc = proc_to_be_run;
 
-            continue; 
+        cout << "Scheduler: Now Running: " << this->current_proc->get_PID() << endl;
+
+    }
+
+    int return_code = cpu->cpu_operation();
+    
+    if ( return_code == 0 ) {
+
+        cout << "Process PID: " << this->current_proc->get_PID() << " exiting..." << endl;
+        this->process_exit();
+        this->process_dump_readyQ();
+    
+    } else {
+    
+        if ( this->current_proc != idlepcb ){
+
+            cout << "Scheduler: Ran: " << this->current_proc->get_PID() << endl;
+            cout << "Return code: " << return_code << endl;
+            cout << endl;
+            this->process_insert_readyQ(this->current_proc);
         
         }
+    
     }
 
 }

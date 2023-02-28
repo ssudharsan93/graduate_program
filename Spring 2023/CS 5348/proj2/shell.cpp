@@ -139,9 +139,7 @@ void Shell::shell_command(){
     int cmd = -1;
     char input;
 
-    bool wrong_input = true;
-
-    while ( wrong_input && !TERMINATE ) {
+    while ( !TERMINATE ) {
         cout << "Shell Command> ";
         cin.clear();
         cin.get(input);
@@ -152,7 +150,6 @@ void Shell::shell_command(){
         
         else {
             cmd = ( (int) input ) - ( (int) '0' );
-            wrong_input = false;
         }
 
         switch(cmd){
@@ -178,7 +175,7 @@ void Shell::shell_command(){
                 this->shell_dump_spool_information();
                 continue;
             default:
-                wrong_input = true;
+                continue;
         }
     }
 

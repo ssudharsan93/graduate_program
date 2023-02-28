@@ -72,7 +72,7 @@ bool CPU::cpu_execute_instruction(){
 
         case 8: //8 (sleep) Time Sleep for the given “time” in microseconds, which is the operand
             usleep(IR1);
-	          break;
+	        break;
 
         case 9: //9 (shell) Code Execute the shell command according to code (elaborated later)
             shell = returnShell();
