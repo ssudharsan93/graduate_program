@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+
       int a = 0;   int b = 0;   int c, d;
       int pfd[2];     // pipe file descriptor
 

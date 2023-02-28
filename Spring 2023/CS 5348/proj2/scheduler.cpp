@@ -92,8 +92,6 @@ PCB* Scheduler::process_init_PCB(int base){
 
     PROC_SEEN_BY_COMPUTER = PROC_SEEN_BY_COMPUTER + 1;
 
-    cout << "PID will be " << PROC_SEEN_BY_COMPUTER << endl;
-
     PCB* new_proc = new PCB(PROC_SEEN_BY_COMPUTER, base);
     
     auto pcb_struct_it = this->pcb_structure->find(PROC_SEEN_BY_COMPUTER);
