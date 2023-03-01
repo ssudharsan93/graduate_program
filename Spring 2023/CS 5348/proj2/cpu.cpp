@@ -80,13 +80,13 @@ bool CPU::cpu_execute_instruction(){
                 case 2:
                     shell->shell_print_registers();
                     break;
-                case 3: {
+                case 3: 
                     shell->shell_print_memory();
                     break;
                 default:
                     break;
             }
-            
+
             break;
 
         case 0: //0 (exit) Null End of the current program, null is 0 and is unused

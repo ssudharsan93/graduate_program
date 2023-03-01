@@ -140,11 +140,12 @@ void Shell::shell_command(){
     char input;
 
     while ( !TERMINATE ) {
+        
         cout << "Shell Command> ";
-        cin.clear();
         cin.get(input);
 
-        if ( !isdigit(input) || isspace(input) ) { 
+        if ( !isdigit(input) || input == '\n' ) {
+            cout << endl;
             continue;
         }
         
