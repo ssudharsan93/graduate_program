@@ -34,7 +34,7 @@ void print_init() {
 
         //while ( NOACK ) {
             
-        int read_return_code = read(print_read, buffer, sizeof(buffer));
+        read(print_read, buffer, sizeof(buffer));
         //if ( read_return_code == 0 ){ // nothing was received
         //    continue;
         //}
@@ -63,6 +63,7 @@ void print_init_spool(int PID) {
     char spool[] = "SPL ";
     char pid_str[80];
     char newline[] = "\n";
+    char return_msg[80];
     
     sprintf(pid_str, "%d", PID);
     
@@ -70,6 +71,8 @@ void print_init_spool(int PID) {
     strcat(spool, newline);
 
     write(print_write, spool, sizeof(spool));
+    read(print_read, return_msg, sizeof(return_msg));
+    cout << "Received: " << return_msg << endl;
     
     return;
 }
@@ -78,30 +81,36 @@ void print_end_spool(int PID){
     char end[] = "END ";
     char pid_str[80];
     char newline[] = "\n";
+    char return_msg[80];
     
     sprintf(pid_str, "%d", PID);
     
     strcat(end, pid_str);
     strcat(end, newline);
 
-    cout << end << sizeof(end) << endl;
-
     write(print_write, end, sizeof(end));
+    read(print_read, return_msg, sizeof(return_msg));
+    cout << "Received: " << return_msg << endl;
 }
 
 void print_print(char buffer[], int PID) {
     char prt[] = "PRT ";
     char pid_str[80];
     char newline[] = "\n";
+    char return_msg[80];
     
     sprintf(pid_str, "%d", PID);
     
     strcat(prt, pid_str);
     strcat(prt, newline);
+    strcat(prt, buffer);
 
-    cout << prt << sizeof(prt) << endl;
+    cout << prt << endl;
+
     write(print_write, prt, sizeof(prt));
-    write(print_write, buffer, sizeof(buffer));
+    read(print_read, return_msg, sizeof(return_msg));
+    cout << "Received: " << return_msg << endl;
+    //write(print_write, buffer, sizeof(buffer));
 
     return;
 }
@@ -111,14 +120,13 @@ void print_terminate() {
     char trm[] = "TRM ";
     char pid_str[80];
     char newline[] = "\n";
-    char buffer[1024];
+    char buffer[80];
     
     sprintf(pid_str, "%d", 9999);
     
     strcat(trm, pid_str);
     strcat(trm, newline);
 
-    cout << trm << sizeof(trm) << endl;
     write(print_write, trm, sizeof(trm));
     read(print_read, buffer, sizeof(buffer));
 
@@ -144,9 +152,10 @@ int main() {
         char msg[] = "I want to print this to the spool file";
         
         print_init_spool(1);
-        //print_print(msg, 1);
-        //print_end_spool(1);
+        print_print(msg, 1);
+        print_end_spool(1);
         print_terminate();
+
     }
 
     return 0;

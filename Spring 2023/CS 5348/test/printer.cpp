@@ -15,13 +15,18 @@ FILE* printer_init_spool(int PID){
 
     FILE *fp = NULL;
     char fname[80];
+    char *header = "pid";
     char *footer = "_spool.txt";
     
     sprintf(fname, "%d", PID);
     strcat(fname, footer);
     cout << fname << endl;
     
-    fp = fopen(fname, "w");
+    fp = fopen(fname, "w+");
+
+    char return_msg[] = "Init Spool Finish";
+
+    write(printer_write, return_msg, sizeof(return_msg));
 
     return fp;
 
@@ -30,12 +35,19 @@ FILE* printer_init_spool(int PID){
 void printer_end_spool(FILE *spool_fp, FILE *printer_fp){
     
     char line[100];
-    
+
+    cout << "End Spool Start" << endl;
+    fseek(spool_fp, 0, SEEK_SET);
     while ( fgets(line, sizeof(line), spool_fp) ){
+        cout << line << endl;
         fputs(line, printer_fp);
     }
     
     fclose(spool_fp);
+
+    char return_msg[] = "End Spool Finish";
+
+    write(printer_write, return_msg, sizeof(return_msg));
 
     return;
 
@@ -60,9 +72,14 @@ void printer_dump_spool(unordered_map<int, FILE*> *file_desc_struct){
 }
 
 void printer_print(char buffer[], FILE *spool_fp){
-    
-    cout << buffer << endl;
-    fputs(buffer, spool_fp);
+
+    char msg[] = "I want to print this to the spool file";
+    fputs(msg, spool_fp);
+
+    char return_msg[] = "Print Spool Finish";
+
+    write(printer_write, return_msg, sizeof(return_msg));
+
     return;
 
 }
@@ -102,14 +119,6 @@ void printer_main() {
     while ( !TERMINATE ) {
 
         read(printer_read, CMD, sizeof(CMD));
-
-        // int flags = fcntl(printer_read, F_GETFL, 0);
-        // fcntl(printer_read, F_SETFL, flags | O_NONBLOCK);
-    
-        // int read_return_code = read(printer_read, CMD, sizeof(CMD));
-        // if ( read_return_code == 0 ){ // nothing was received
-        //      continue;
-        // }
         
         message = strtok(CMD, delim);
         command = message;
@@ -117,6 +126,7 @@ void printer_main() {
         PID = atoi(message);
 
         cout << "Command was: " << command << endl;
+        cout << "PID was: " << PID << endl;
         cout << "TERMINATE was: " << TERMINATE << endl;
 
         if ( strcmp(command, SPL) == 0 ) {
@@ -130,24 +140,41 @@ void printer_main() {
                 file_desc_struct->insert(pid_file_desc_pair);
             }
 
+            cout << "Reached end" << endl;
+
         } 
         
         else if ( strcmp(command, END) == 0 ) {
             fp = file_desc_struct->at(PID);
             printer_end_spool(fp, printer_out_fp);
             file_desc_struct->erase(PID);
+
+            char fname[80];
+            char *footer = "_spool.txt";
+
+            sprintf(fname, "%d", PID);
+            strcat(fname, footer);
+
+            cout << "Removing " << fname << "..." << endl;
+
+            remove(fname);
         } 
         
         else if ( strcmp(command, PRT) == 0 ) {
-            read(printer_read, buffer, sizeof(buffer));
+            //read(printer_read, buffer, sizeof(buffer));
+            //message = strtok(NULL, delim);
+            //cout << message << endl;
             fp = file_desc_struct->at(PID);
             printer_print(buffer, fp);
         } 
         
         else if ( strcmp(command, TRM) == 0 ) {
+            printer_terminate();
             char term_msg[] = "TERM COMPLETED";
             write(printer_write, term_msg, sizeof(term_msg));
-            printer_terminate();
+
+            fclose(printer_out_fp);
+
         } 
 
         else {
