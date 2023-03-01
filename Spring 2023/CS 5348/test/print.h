@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <string>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -18,7 +19,8 @@ extern int print_write;
 extern bool TERMINATE;
 
 extern pid_t pid;
- 
+
+void send_instruction(string instruction, int PID, string msg);
 void print_init();
 void print_init_spool(int PID);
 void print_end_spool(int PID);

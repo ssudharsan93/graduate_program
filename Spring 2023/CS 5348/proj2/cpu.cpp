@@ -76,49 +76,17 @@ bool CPU::cpu_execute_instruction(){
 
         case 9: //9 (shell) Code Execute the shell command according to code (elaborated later)
             shell = returnShell();
-            if ( IR1 == 2 ) { 
-
-                // cout << endl;
-
-                // cout << "===========================" << endl;
-                // cout << "     Register Dump         " << endl;
-                // cout << "===========================" << endl;
-                // cout << "Register: Contents" << endl;
-                // cout << "BASE: " << BASE << endl;
-                // cout << "PC: " << PC << endl;
-                // cout << "IR0: " << IR0 << endl;
-                // cout << "IR1: " << IR1 << endl;
-                // cout << "AC: " << AC << endl;
-                // cout << "MAR: " << MAR << endl;
-                // cout << "MBR: " << MBR << endl;
-
-                // cout << endl;
-
-                cout << endl;
-                cout << "Need to print registers to printer." << endl;
+            switch(IR1) {
+                case 2:
+                    shell->shell_print_registers();
+                    break;
+                case 3: {
+                    shell->shell_print_memory();
+                    break;
+                default:
+                    break;
             }
-            else if (IR1 == 3) {
-
-                // cout << endl;
-
-                // cout << "===========================" << endl;
-                // cout << "     Memory Dump: k = " << mem->size << "    " << endl;
-                // cout << "===========================" << endl;
-                // cout << "Address: Contents" << endl;
-
-                // int mem_size = mem->size;
-
-                // for ( int mem_addr_counter = 0; mem_addr_counter < mem_size; mem_addr_counter++ ){
-                //     cout << mem_addr_counter << ": " << mem->Mem[mem_addr_counter] << endl;
-                // }
-
-                //cout << endl;
-                cout << endl; 
-                cout << "Need to print memory to printer" << endl; 
-            }
-            else { 
-                break; 
-            }
+            
             break;
 
         case 0: //0 (exit) Null End of the current program, null is 0 and is unused

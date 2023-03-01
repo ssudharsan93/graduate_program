@@ -7,12 +7,34 @@ int print_write;
 pid_t pid;
 bool TERMINATE = false;
 
+void send_instruction(string instruction, int PID, string msg = "") {
+
+    string cmd;
+    string space = " ";
+    string process_id;
+    string newline = "\n";
+    char return_msg[80];
+    
+    process_id = to_string(PID);
+    cmd = instruction + space + process_id + newline + msg;
+
+    char buffer[cmd.size()+1];
+    strcpy(buffer, cmd.c_str());
+
+    write(print_write, buffer, sizeof(cmd));
+    fsync(print_write);
+    read(print_read, return_msg, sizeof(return_msg));
+    cout << "Received: " << return_msg << endl;
+    
+    return;
+}
+
 void print_init() {
     int fds1[2];
     int fds2[2];
     int fds3[2];
 
-    char buffer[1024];
+    char buffer[80];
         
     pipe(fds1); pipe(fds2);
     
@@ -60,77 +82,24 @@ void print_init() {
 
 void print_init_spool(int PID) {
     
-    char spool[] = "SPL ";
-    char pid_str[80];
-    char newline[] = "\n";
-    char return_msg[80];
-    
-    sprintf(pid_str, "%d", PID);
-    
-    strcat(spool, pid_str);
-    strcat(spool, newline);
-
-    write(print_write, spool, sizeof(spool));
-    read(print_read, return_msg, sizeof(return_msg));
-    cout << "Received: " << return_msg << endl;
-    
-    return;
+    send_instruction("SPL", PID);
 }
 
 void print_end_spool(int PID){
-    char end[] = "END ";
-    char pid_str[80];
-    char newline[] = "\n";
-    char return_msg[80];
-    
-    sprintf(pid_str, "%d", PID);
-    
-    strcat(end, pid_str);
-    strcat(end, newline);
 
-    write(print_write, end, sizeof(end));
-    read(print_read, return_msg, sizeof(return_msg));
-    cout << "Received: " << return_msg << endl;
+    send_instruction("END",PID);
 }
 
 void print_print(char buffer[], int PID) {
-    char prt[] = "PRT ";
-    char pid_str[80];
-    char newline[] = "\n";
-    char return_msg[80];
-    
-    sprintf(pid_str, "%d", PID);
-    
-    strcat(prt, pid_str);
-    strcat(prt, newline);
-    strcat(prt, buffer);
 
-    cout << prt << endl;
+    string msg(buffer);
+    send_instruction("PRT", PID, msg);
 
-    write(print_write, prt, sizeof(prt));
-    read(print_read, return_msg, sizeof(return_msg));
-    cout << "Received: " << return_msg << endl;
-    //write(print_write, buffer, sizeof(buffer));
-
-    return;
 }
 
 void print_terminate() {
-
-    char trm[] = "TRM ";
-    char pid_str[80];
-    char newline[] = "\n";
-    char buffer[80];
     
-    sprintf(pid_str, "%d", 9999);
-    
-    strcat(trm, pid_str);
-    strcat(trm, newline);
-
-    write(print_write, trm, sizeof(trm));
-    read(print_read, buffer, sizeof(buffer));
-
-    cout << buffer << endl;
+    send_instruction("TRM", 9999); //PID value is ignored by printer component
 
     close(print_read);
     close(print_write);
@@ -149,7 +118,7 @@ int main() {
     print_init();
 
     if ( pid > 0 ) {
-        char msg[] = "I want to print this to the spool file";
+        char msg[] = "AC: ";
         
         print_init_spool(1);
         print_print(msg, 1);

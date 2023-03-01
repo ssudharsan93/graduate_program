@@ -3,8 +3,11 @@
 FILE* printer_init() {
 
     FILE *fp = NULL;
-    char ACK[] = "ACK";
-    write(printer_write, ACK, sizeof(ACK));
+    string ACK = "ACK";
+
+    char msg[ACK.size() + 1];
+    strcpy(msg, ACK.c_str());
+    write(printer_write, msg, sizeof(msg));
 
     fp = fopen("printer.out", "w");
     return fp;
@@ -14,19 +17,24 @@ FILE* printer_init() {
 FILE* printer_init_spool(int PID){
 
     FILE *fp = NULL;
-    char fname[80];
-    char *header = "pid";
-    char *footer = "_spool.txt";
-    
-    sprintf(fname, "%d", PID);
-    strcat(fname, footer);
+    string fname;
+    string header = "pid";
+    string footer = "_spool.txt";
+
+    string process_id = to_string(PID);
+    fname = header + process_id + footer;
     cout << fname << endl;
-    
-    fp = fopen(fname, "w+");
 
-    char return_msg[] = "Init Spool Finish";
+    char spool_fname[fname.size() + 1];
+    strcpy(spool_fname, fname.c_str());
 
-    write(printer_write, return_msg, sizeof(return_msg));
+    fp = fopen(spool_fname, "w+");
+
+    string return_msg = "Init Spool Finish";
+
+    char msg[return_msg.size() + 1];
+    strcpy(msg, return_msg.c_str());
+    write(printer_write, msg, sizeof(msg));
 
     return fp;
 
@@ -38,6 +46,7 @@ void printer_end_spool(FILE *spool_fp, FILE *printer_fp){
 
     cout << "End Spool Start" << endl;
     fseek(spool_fp, 0, SEEK_SET);
+
     while ( fgets(line, sizeof(line), spool_fp) ){
         cout << line << endl;
         fputs(line, printer_fp);
@@ -45,9 +54,11 @@ void printer_end_spool(FILE *spool_fp, FILE *printer_fp){
     
     fclose(spool_fp);
 
-    char return_msg[] = "End Spool Finish";
+    string return_msg = "End Spool Finish";
 
-    write(printer_write, return_msg, sizeof(return_msg));
+    char msg[return_msg.size() + 1];
+    strcpy(msg, return_msg.c_str());
+    write(printer_write, msg, sizeof(msg));
 
     return;
 
@@ -76,9 +87,13 @@ void printer_print(char buffer[], FILE *spool_fp){
     char msg[] = "I want to print this to the spool file";
     fputs(msg, spool_fp);
 
-    char return_msg[] = "Print Spool Finish";
+    string return_msg = "Print Spool Finish";
 
-    write(printer_write, return_msg, sizeof(return_msg));
+    char rmsg[return_msg.size() + 1];
+
+    strcpy(rmsg, return_msg.c_str());
+
+    write(printer_write, rmsg, sizeof(msg));
 
     return;
 
@@ -95,14 +110,15 @@ void printer_terminate(){
 
 void printer_main() {
 
-    char *SPL = "SPL";
-    char *END = "END";
-    char *PRT = "PRT";
-    char *TRM = "TRM"; 
+    char SPL[] = "SPL";
+    char END[] = "END";
+    char PRT[] = "PRT";
+    char TRM[] = "TRM";
 
-    char CMD[1024];
-    char buffer[1024];
-    char *message = NULL;
+    char CMD[100];
+    char buffer[100];
+
+    char *message;
     int PID;
 
     FILE *fp = NULL;
@@ -119,6 +135,8 @@ void printer_main() {
     while ( !TERMINATE ) {
 
         read(printer_read, CMD, sizeof(CMD));
+
+        cout << CMD << endl;
         
         message = strtok(CMD, delim);
         command = message;
@@ -149,15 +167,19 @@ void printer_main() {
             printer_end_spool(fp, printer_out_fp);
             file_desc_struct->erase(PID);
 
-            char fname[80];
-            char *footer = "_spool.txt";
+            string fname;
+            string header = "pid";
+            string process_id = to_string(PID);
+            string footer = "_spool.txt";
 
-            sprintf(fname, "%d", PID);
-            strcat(fname, footer);
+            fname = header + process_id + footer;
+
+            char spool_fname[fname.size() + 1];
+            strcpy(spool_fname, fname.c_str());
 
             cout << "Removing " << fname << "..." << endl;
 
-            remove(fname);
+            remove(spool_fname);
         } 
         
         else if ( strcmp(command, PRT) == 0 ) {
