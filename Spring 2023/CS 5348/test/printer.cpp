@@ -1,5 +1,7 @@
 #include "print.h"
 
+//Initialize the printer, including opening the simulated printing paper, i.e., the “printer.out” file.
+//Sends an ACK to the print component to indicate that the initialization is done.
 FILE* printer_init() {
 
     FILE *fp = NULL;
@@ -14,6 +16,8 @@ FILE* printer_init() {
 
 }
 
+//Opening a spool file for the process.
+//You can use PID to differentiate the spool file names.
 FILE* printer_init_spool(int PID){
 
     FILE *fp = NULL;
@@ -29,6 +33,14 @@ FILE* printer_init_spool(int PID){
     strcpy(spool_fname, fname.c_str());
 
     fp = fopen(spool_fname, "w+");
+    
+    string separator =    "--------------------\n";
+    string process_str =  "     Process: " + to_string(PID) + "\n";
+    string process_header = separator + process_str + separator;
+    char init_msg[process_header.size() + 1];
+    strcpy(init_msg, process_header.c_str());
+
+    fputs(init_msg, fp);
 
     string return_msg = "Init Spool Finish";
 
@@ -40,7 +52,8 @@ FILE* printer_init_spool(int PID){
 
 }
 
-void printer_end_spool(FILE *spool_fp, FILE *printer_fp){
+//The printer prints the contents in the spool file of the process to the simulated paper and close the spool file.
+void printer_end_spool(int PID, FILE *spool_fp, FILE *printer_fp){
     
     char line[100];
 
@@ -48,11 +61,32 @@ void printer_end_spool(FILE *spool_fp, FILE *printer_fp){
     fseek(spool_fp, 0, SEEK_SET);
 
     while ( fgets(line, sizeof(line), spool_fp) ){
-        cout << line << endl;
         fputs(line, printer_fp);
     }
+
+    string separator =    "--------------------\n";
+    string process_str =  "     End Process: " + to_string(PID) + "\n";
+    string process_footer = separator + process_str + separator;
+
+    char close_msg[process_footer.size() + 1];
+    strcpy(close_msg, process_footer.c_str());
+    fputs(close_msg, printer_fp);
     
     fclose(spool_fp);
+
+    string fname;
+    string header = "pid";
+    string process_id = to_string(PID);
+    string footer = "_spool.txt";
+
+    fname = header + process_id + footer;
+
+    char spool_fname[fname.size() + 1];
+    strcpy(spool_fname, fname.c_str());
+
+    cout << "Removing " << fname << "..." << endl;
+
+    remove(spool_fname);
 
     string return_msg = "End Spool Finish";
 
@@ -82,10 +116,12 @@ void printer_dump_spool(unordered_map<int, FILE*> *file_desc_struct){
     }
 }
 
+//This function is for handling the regular print instructions.
+//It should determine which spool file to use and writes the to-be-printed content to the spool file.
 void printer_print(char buffer[], FILE *spool_fp){
 
-    char msg[] = "I want to print this to the spool file";
-    fputs(msg, spool_fp);
+    fputs(buffer, spool_fp);
+    fputs("\n", spool_fp);
 
     string return_msg = "Print Spool Finish";
 
@@ -93,21 +129,26 @@ void printer_print(char buffer[], FILE *spool_fp){
 
     strcpy(rmsg, return_msg.c_str());
 
-    write(printer_write, rmsg, sizeof(msg));
+    write(printer_write, rmsg, sizeof(rmsg));
 
     return;
 
 }
 
+//For any process that has not terminated, print its partial output in its spool file
+//to the simulated paper, and add a message at the end to indicate that the process did
+//not finish yet. Then, clean up and terminate the printer process.
 void printer_terminate(){
     TERMINATE = true;
 }
 
+//This is the printer main function. It calls printer_init() to initialize the printer
+//and then waits on the pipe. Once a message is received,
+//it analyzes the message and determines the function to call.
 //SPL is SPOOL INIT
 //END is SPOOL END
 //PRT is PRINT
 //TRM is TERMINATE
-
 void printer_main() {
 
     char SPL[] = "SPL";
@@ -128,7 +169,7 @@ void printer_main() {
 
     char *command = NULL;
 
-    char delim[] = " \n";
+    char delim[] = ",";
     
     printer_out_fp = printer_init();
 
@@ -148,7 +189,6 @@ void printer_main() {
         cout << "TERMINATE was: " << TERMINATE << endl;
 
         if ( strcmp(command, SPL) == 0 ) {
-            cout << "Need to Spool for PID: " << PID << endl;
             fp = printer_init_spool(PID);
 
             auto file_desc_struct_it = file_desc_struct->find(PID);
@@ -164,30 +204,16 @@ void printer_main() {
         
         else if ( strcmp(command, END) == 0 ) {
             fp = file_desc_struct->at(PID);
-            printer_end_spool(fp, printer_out_fp);
+            printer_end_spool(PID, fp, printer_out_fp);
             file_desc_struct->erase(PID);
 
-            string fname;
-            string header = "pid";
-            string process_id = to_string(PID);
-            string footer = "_spool.txt";
-
-            fname = header + process_id + footer;
-
-            char spool_fname[fname.size() + 1];
-            strcpy(spool_fname, fname.c_str());
-
-            cout << "Removing " << fname << "..." << endl;
-
-            remove(spool_fname);
         } 
         
         else if ( strcmp(command, PRT) == 0 ) {
-            //read(printer_read, buffer, sizeof(buffer));
-            //message = strtok(NULL, delim);
-            //cout << message << endl;
+            message = strtok(NULL, delim);
+            cout << message << endl;
             fp = file_desc_struct->at(PID);
-            printer_print(buffer, fp);
+            printer_print(message, fp);
         } 
         
         else if ( strcmp(command, TRM) == 0 ) {
