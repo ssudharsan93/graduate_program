@@ -257,10 +257,7 @@ void Scheduler::process_execute(){
     } else {
     
         if ( this->current_proc != idlepcb ){
-
-            cout << "Scheduler: Ran: " << this->current_proc->get_PID() << endl;
-            cout << "Return code: " << return_code << endl;
-            cout << endl;
+        
             this->process_insert_readyQ(this->current_proc);
         
         }

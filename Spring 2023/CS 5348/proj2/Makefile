@@ -2,7 +2,7 @@ EXECUTABLE = computer.exe
 SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp scheduler.cpp
 HEADERS = computer.h memory.h load.h shell.h cpu.h scheduler.h
 CXX = g++
-CFLAGS = -Wall -std=gnu++11
+CFLAGS = -g -Wall -std=gnu++11
 OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(EXECUTABLE)
