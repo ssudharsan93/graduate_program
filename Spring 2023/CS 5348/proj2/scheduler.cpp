@@ -80,6 +80,10 @@ Scheduler::~Scheduler(){
     delete this->pcb_structure;
 }
 
+PCB* Scheduler::get_current_proc() {
+    return this->current_proc;
+}
+
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
     this->pcb_structure = new map<int, PCB*>();
@@ -117,9 +121,6 @@ void Scheduler::process_dispose_PCB(){
     
     this->pcb_structure->erase(this->current_proc->get_PID());
     this->process_dump_PCB();
-    PCB* proc_to_be_deleted = this->current_proc;
-    delete proc_to_be_deleted;
-    this->current_proc = NULL;
     
     return;
 
@@ -217,6 +218,8 @@ void Scheduler::process_submit(int base){
     new_proc = process_init_PCB(base);
 
     if ( base != 0 ){
+        
+        print_init_spool(new_proc->get_PID());
         this->process_insert_readyQ(new_proc);
         this->process_dump_readyQ();
     }
@@ -258,7 +261,7 @@ void Scheduler::process_execute(){
     
         if ( this->current_proc != idlepcb ){
         
-        this->process_insert_readyQ(this->current_proc);
+            this->process_insert_readyQ(this->current_proc);
         
         }
     
@@ -268,6 +271,7 @@ void Scheduler::process_execute(){
 
 //Clean up for the exiting process, including calling dispose_PCB and print_end_spool, etc.
 void Scheduler::process_exit(){
+    print_end_spool(this->current_proc->get_PID());
     this->process_dispose_PCB();
     return; 
 }

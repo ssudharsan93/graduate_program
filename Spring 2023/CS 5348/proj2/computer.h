@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
+#include <string>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -15,6 +16,7 @@
 #include "load.h"
 #include "shell.h"
 #include "scheduler.h"
+#include "print.h"
 
 using namespace std;
 

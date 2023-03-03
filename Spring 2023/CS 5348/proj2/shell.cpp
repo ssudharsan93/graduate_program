@@ -42,8 +42,10 @@ void Shell::shell_submit_new_process(){
     FILE *prog_file = loader->load_prog(input_program_file, base);
     loader->load_finish(prog_file);
 
-    //delete [] program_info;
-    //delete [] input_program_file;
+    delete [] delim;
+    delete prog_arg;
+    delete [] program_info;
+    delete [] input_program_file;
     
     return;
 

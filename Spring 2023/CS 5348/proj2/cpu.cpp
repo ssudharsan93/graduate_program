@@ -26,6 +26,10 @@ void CPU::cpu_fetch_instruction(){
 
 bool CPU::cpu_execute_instruction(){
 
+    string to_be_printed;
+    int process_id;
+    char *buffer;
+
     switch ( IR0 ) {
         case 1: //1 (load) constant Load the constant to AC
             AC = IR1;
@@ -68,6 +72,17 @@ bool CPU::cpu_execute_instruction(){
 
         case 7: //7 (print) Null Print the value in AC
             cout << "AC: " << AC << endl;
+            scheduler = returnScheduler();
+            process_id = scheduler->get_current_proc()->get_PID();
+            
+            to_be_printed = "AC : " + to_string(AC);
+            
+            cout << to_be_printed << "For Process: " << process_id << endl;
+
+            buffer = new char[to_be_printed.size() + 1];
+            strcpy(buffer, to_be_printed.c_str());
+
+            print_print(buffer, process_id);
             break;
 
         case 8: //8 (sleep) Time Sleep for the given “time” in microseconds, which is the operand

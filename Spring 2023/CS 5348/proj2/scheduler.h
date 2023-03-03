@@ -40,6 +40,7 @@ private:
 public:
     Scheduler();
     ~Scheduler();
+    PCB* get_current_proc();
     void process_set_registers();
     void process_init_PCBs(); //Initialize a PCB data structure for PCBs of multiple processes.
     PCB* process_init_PCB(int base); // Create a PCB entry for a submitted process.
