@@ -42,9 +42,6 @@ void Shell::shell_submit_new_process(){
     FILE *prog_file = loader->load_prog(input_program_file, base);
     loader->load_finish(prog_file);
 
-    this->shell_dump_process_information();
-    this->shell_dump_readyq_information();
-
     //delete [] program_info;
     //delete [] input_program_file;
     
@@ -140,7 +137,8 @@ void Shell::shell_command(){
     char input;
 
     while ( !TERMINATE ) {
-        
+
+        usleep(5000);
         cout << "Shell Command> ";
         cin.get(input);
 

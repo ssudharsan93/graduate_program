@@ -82,7 +82,7 @@ Scheduler::~Scheduler(){
 
 //Initialize a PCB data structure for PCBs of multiple processes.
 void Scheduler::process_init_PCBs(){
-    this->pcb_structure = new unordered_map<int, PCB*>();
+    this->pcb_structure = new map<int, PCB*>();
 }
 
 // Create a PCB entry for a submitted process.
@@ -258,7 +258,7 @@ void Scheduler::process_execute(){
     
         if ( this->current_proc != idlepcb ){
         
-            this->process_insert_readyQ(this->current_proc);
+        this->process_insert_readyQ(this->current_proc);
         
         }
     

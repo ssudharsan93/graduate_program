@@ -2,7 +2,7 @@
 #define SCHEDULER_H
 
 #include <queue>
-#include <unordered_map>
+#include <map>
 
 class PCB {
 private:
@@ -35,7 +35,7 @@ public:
 
 class Scheduler {
 private:
-    unordered_map<int, PCB*> *pcb_structure;
+    map<int, PCB*> *pcb_structure;
     PCB *current_proc;
 public:
     Scheduler();

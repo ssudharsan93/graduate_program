@@ -98,7 +98,7 @@ void printer_end_spool(int PID, FILE *spool_fp, FILE *printer_fp){
 
 }
 
-void printer_dump_spool(unordered_map<int, FILE*> *file_desc_struct){
+void printer_dump_spool(map<int, FILE*> *file_desc_struct){
     auto f_desc_struct_begin = file_desc_struct->begin();
     auto f_desc_struct_end = file_desc_struct->end();
     int PID;
@@ -165,7 +165,7 @@ void printer_main() {
     FILE *fp = NULL;
     FILE *printer_out_fp = NULL;
 
-    unordered_map<int, FILE*> *file_desc_struct = new unordered_map<int, FILE*>();
+    map<int, FILE*> *file_desc_struct = new map<int, FILE*>();
 
     char *command = NULL;
 
