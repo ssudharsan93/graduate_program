@@ -19,7 +19,6 @@ void send_instruction(string instruction, int PID, string msg = "") {
     cmd = instruction + comma + process_id;
 
     if ( ! ( msg.size() == 0 ) ) {
-        cout << "Entered: " << msg << endl;
         cmd = cmd + comma + msg;
     }
 
@@ -35,7 +34,7 @@ void send_instruction(string instruction, int PID, string msg = "") {
 }
 
 //Fork the printer process and establish the pipe communication. Wait for the ACK from printer via pipe.
-void print_init() {
+void print_init(int PrintingTime) {
     int fds1[2];
     int fds2[2];
     int fds3[2];
@@ -64,10 +63,12 @@ void print_init() {
         close(print_read);
         close(print_write);
 
-        printer_main();
+        printer_main(PrintingTime);
 
         close(printer_read);
         close(printer_write);
+
+        exit(0);
 
     }
 }
@@ -109,30 +110,23 @@ void print_terminate() {
     close(print_read);
     close(print_write);
 
-    //cout << "terminating the system" << endl;
-
-    //int kill_signal_num = SIGKILL;
-
-    //kill(pid, kill_signal_num);
-    //return;
-
 }
 
 int main() {
 
-    print_init();
+    print_init(10000);
 
     if ( pid > 0 ) {
-        char msg1[] = "AC:7";
-        char msg2[] = "AC:9";
+        char msg1[] = "AC: 7";
+        char msg2[] = "AC: 9";
         
         print_init_spool(1);
         print_init_spool(2);
         print_print(msg1, 1);
         print_print(msg2, 2);
-        print_end_spool(1);
+        //print_end_spool(1);
         print_print(msg1, 2);
-        print_end_spool(2);
+        //print_end_spool(2);
         print_terminate();
 
     }

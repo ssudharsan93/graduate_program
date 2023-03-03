@@ -1,5 +1,53 @@
 #include "print.h"
 
+int PT;
+
+void send_response(string response) {
+    
+    char resp[response.size() + 1];
+    strcpy(resp, response.c_str());
+    write(printer_write, resp, sizeof(resp));
+    fsync(printer_write);
+    
+}
+
+void print_spool_to_printout(FILE *spool_fp, FILE *printer_fp, int PID, string footer){
+
+    char line[100];
+
+    fseek(spool_fp, 0, SEEK_SET);
+
+    while ( fgets(line, sizeof(line), spool_fp) ){
+        usleep(PT);
+        fputs(line, printer_fp);
+    }
+
+    string separator =    "--------------------\n";
+    string process_footer = separator + footer + separator;
+
+    char close_msg[process_footer.size() + 1];
+    strcpy(close_msg, process_footer.c_str());
+    usleep(PT);
+    fputs(close_msg, printer_fp);
+
+    fclose(spool_fp);
+
+    string fname;
+    string file_header = "pid";
+    string process_id = to_string(PID);
+    string file_footer = "_spool.txt";
+
+    fname = file_header + process_id + file_footer;
+
+    char spool_fname[fname.size() + 1];
+    strcpy(spool_fname, fname.c_str());
+
+    cout << "Removing " << fname << "..." << endl;
+
+    remove(spool_fname);
+
+}
+
 //Initialize the printer, including opening the simulated printing paper, i.e., the “printer.out” file.
 //Sends an ACK to the print component to indicate that the initialization is done.
 FILE* printer_init() {
@@ -7,9 +55,7 @@ FILE* printer_init() {
     FILE *fp = NULL;
     string ACK = "ACK";
 
-    char msg[ACK.size() + 1];
-    strcpy(msg, ACK.c_str());
-    write(printer_write, msg, sizeof(msg));
+    send_response(ACK);
 
     fp = fopen("printer.out", "w");
     return fp;
@@ -44,9 +90,7 @@ FILE* printer_init_spool(int PID){
 
     string return_msg = "Init Spool Finish";
 
-    char msg[return_msg.size() + 1];
-    strcpy(msg, return_msg.c_str());
-    write(printer_write, msg, sizeof(msg));
+    send_response(return_msg);
 
     return fp;
 
@@ -55,44 +99,14 @@ FILE* printer_init_spool(int PID){
 //The printer prints the contents in the spool file of the process to the simulated paper and close the spool file.
 void printer_end_spool(int PID, FILE *spool_fp, FILE *printer_fp){
     
-    char line[100];
-
     cout << "End Spool Start" << endl;
-    fseek(spool_fp, 0, SEEK_SET);
 
-    while ( fgets(line, sizeof(line), spool_fp) ){
-        fputs(line, printer_fp);
-    }
-
-    string separator =    "--------------------\n";
-    string process_str =  "     End Process: " + to_string(PID) + "\n";
-    string process_footer = separator + process_str + separator;
-
-    char close_msg[process_footer.size() + 1];
-    strcpy(close_msg, process_footer.c_str());
-    fputs(close_msg, printer_fp);
-    
-    fclose(spool_fp);
-
-    string fname;
-    string header = "pid";
-    string process_id = to_string(PID);
-    string footer = "_spool.txt";
-
-    fname = header + process_id + footer;
-
-    char spool_fname[fname.size() + 1];
-    strcpy(spool_fname, fname.c_str());
-
-    cout << "Removing " << fname << "..." << endl;
-
-    remove(spool_fname);
+    string footer =  "     End Process: " + to_string(PID) + "\n";
+    print_spool_to_printout(spool_fp, printer_fp, PID, footer);
 
     string return_msg = "End Spool Finish";
 
-    char msg[return_msg.size() + 1];
-    strcpy(msg, return_msg.c_str());
-    write(printer_write, msg, sizeof(msg));
+    send_response(return_msg);
 
     return;
 
@@ -125,11 +139,7 @@ void printer_print(char buffer[], FILE *spool_fp){
 
     string return_msg = "Print Spool Finish";
 
-    char rmsg[return_msg.size() + 1];
-
-    strcpy(rmsg, return_msg.c_str());
-
-    write(printer_write, rmsg, sizeof(rmsg));
+    send_response(return_msg);
 
     return;
 
@@ -138,8 +148,27 @@ void printer_print(char buffer[], FILE *spool_fp){
 //For any process that has not terminated, print its partial output in its spool file
 //to the simulated paper, and add a message at the end to indicate that the process did
 //not finish yet. Then, clean up and terminate the printer process.
-void printer_terminate(){
+void printer_terminate(map<int, FILE*> *file_desc_struct, FILE *printer_fp){
+    
     TERMINATE = true;
+
+    auto f_desc_struct_begin = file_desc_struct->begin();
+    auto f_desc_struct_end = file_desc_struct->end();
+    int PID;
+    FILE *spool_fp;
+
+    for ( auto f_desc_struct_it = f_desc_struct_begin; f_desc_struct_it != f_desc_struct_end; ++f_desc_struct_it ) {
+        PID = f_desc_struct_it->first;
+        spool_fp = f_desc_struct_it->second;
+
+        string footer =  "     Process: " + to_string(PID) + " Terminated without Completion.\n";
+        print_spool_to_printout(spool_fp, printer_fp, PID, footer);
+    }
+
+    string return_msg = "Term Completed";
+    send_response(return_msg);
+
+
 }
 
 //This is the printer main function. It calls printer_init() to initialize the printer
@@ -149,7 +178,9 @@ void printer_terminate(){
 //END is SPOOL END
 //PRT is PRINT
 //TRM is TERMINATE
-void printer_main() {
+void printer_main(int PrintingTime) {
+
+    PT = PrintingTime;
 
     char SPL[] = "SPL";
     char END[] = "END";
@@ -176,17 +207,11 @@ void printer_main() {
     while ( !TERMINATE ) {
 
         read(printer_read, CMD, sizeof(CMD));
-
-        cout << CMD << endl;
         
         message = strtok(CMD, delim);
         command = message;
         message = strtok(NULL, delim);
         PID = atoi(message);
-
-        cout << "Command was: " << command << endl;
-        cout << "PID was: " << PID << endl;
-        cout << "TERMINATE was: " << TERMINATE << endl;
 
         if ( strcmp(command, SPL) == 0 ) {
             fp = printer_init_spool(PID);
@@ -197,9 +222,6 @@ void printer_main() {
                 pair<int, FILE*> pid_file_desc_pair = make_pair(PID, fp);
                 file_desc_struct->insert(pid_file_desc_pair);
             }
-
-            cout << "Reached end" << endl;
-
         } 
         
         else if ( strcmp(command, END) == 0 ) {
@@ -217,10 +239,7 @@ void printer_main() {
         } 
         
         else if ( strcmp(command, TRM) == 0 ) {
-            printer_terminate();
-            char term_msg[] = "TERM COMPLETED";
-            write(printer_write, term_msg, sizeof(term_msg));
-
+            printer_terminate(file_desc_struct, printer_out_fp);
             fclose(printer_out_fp);
 
         } 
