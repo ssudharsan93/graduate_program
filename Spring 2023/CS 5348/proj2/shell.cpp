@@ -41,11 +41,6 @@ void Shell::shell_submit_new_process(){
     scheduler->process_submit(base);
     FILE *prog_file = loader->load_prog(input_program_file, base);
     loader->load_finish(prog_file);
-
-    delete [] delim;
-    delete prog_arg;
-    delete [] program_info;
-    delete [] input_program_file;
     
     return;
 

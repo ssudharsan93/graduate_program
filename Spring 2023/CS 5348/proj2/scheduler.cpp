@@ -121,6 +121,9 @@ void Scheduler::process_dispose_PCB(){
     
     this->pcb_structure->erase(this->current_proc->get_PID());
     this->process_dump_PCB();
+
+    delete this->current_proc;
+    this->current_proc = NULL;
     
     return;
 
@@ -253,10 +256,11 @@ void Scheduler::process_execute(){
     
     if ( return_code == 0 ) {
 
+        cout << "Process PID: " << this->current_proc->get_PID() << "Return Code: " << return_code << endl;
         cout << "Process PID: " << this->current_proc->get_PID() << " exiting..." << endl;
         this->process_exit();
         this->process_dump_readyQ();
-    
+
     } else {
     
         if ( this->current_proc != idlepcb ){

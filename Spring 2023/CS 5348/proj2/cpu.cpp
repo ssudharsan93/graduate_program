@@ -81,8 +81,8 @@ bool CPU::cpu_execute_instruction(){
 
             buffer = new char[to_be_printed.size() + 1];
             strcpy(buffer, to_be_printed.c_str());
-
             print_print(buffer, process_id);
+
             break;
 
         case 8: //8 (sleep) Time Sleep for the given “time” in microseconds, which is the operand
@@ -126,6 +126,7 @@ int CPU::cpu_operation(){
 
     while ( executing && !time_expiration ) {
         this->cpu_fetch_instruction();
+
         executing = this->cpu_execute_instruction();
         cycles_executed++;
         
