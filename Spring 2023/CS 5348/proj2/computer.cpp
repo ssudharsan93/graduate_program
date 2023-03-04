@@ -83,7 +83,6 @@ void run_computer() {
     loader->load_finish(idle_prog_file);
     scheduler->process_submit(0);
 
-    //test_print_component();
     print_init(PT);
 
     pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
