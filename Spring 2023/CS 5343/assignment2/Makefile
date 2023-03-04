@@ -1,4 +1,4 @@
-EXECUTABLE1 = hw2_bst_delete
+EXECUTABLE1 = hw2
 SOURCES = main.cpp TreeNode.cpp
 HEADERS = TreeNode.h
 CXX = g++

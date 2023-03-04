@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 
 class TreeNode {
 private:
@@ -18,6 +19,8 @@ public:
     int get_val();
 };
 
+using namespace std;
+
 TreeNode* insert_node(TreeNode *root, int val);
 TreeNode* delete_node(TreeNode *root, int val);
 TreeNode* get_successor(TreeNode *node);
@@ -25,4 +28,5 @@ TreeNode* get_predecessor(TreeNode *node);
 void inorder_traversal(TreeNode *node); // print after left child call
 void preorder_traversal(TreeNode *node); // print before left child or right child call
 void postorder_traversal(TreeNode *node); // print after left child and right child call return
-void print_tree();
+void depth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched);
+void print_tree(TreeNode *root);

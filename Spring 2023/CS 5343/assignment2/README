@@ -7,10 +7,14 @@ This folder contains a
 In order to compile the files in this folder,
 and create executables, you simply run the
 `make` command on the command line. `make clean`
-will get rid of executables and source files.
+will get rid of executables and object files.
 
 In order to run the executable file
-'hw2_bst_delete' simply run `./hw2_bst_delete` 
+'hw2' simply run `./hw2` 
 on the command line to run the  binary search tree
 algorithm for inserting and deleting the nodes provided
 in the homework.
+
+If you prefer not to compile, the executable file
+`hw2` is provided for you. To run it, simply run `./hw2`
+from the folder you copy it into.
