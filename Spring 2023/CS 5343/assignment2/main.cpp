@@ -47,48 +47,72 @@ int main() {
     node17 = insert_node(root, 48);
     node18 = insert_node(root, 46);
 
-    TreeNode *test_pred1 = get_predecessor(node1);
-    TreeNode *test_pred2 = get_predecessor(node8);
-    TreeNode *test_pred3 = get_predecessor(root);
-    TreeNode *test_pred4 = get_predecessor(node9);
-    TreeNode *test_succ1 = get_successor(root);
-    TreeNode *test_succ2 = get_successor(node11);
+    // TreeNode *test_pred1 = get_predecessor(node1);
+    // TreeNode *test_pred2 = get_predecessor(node8);
+    // TreeNode *test_pred3 = get_predecessor(root);
+    // TreeNode *test_pred4 = get_predecessor(node9);
+    // TreeNode *test_succ1 = get_successor(root);
+    // TreeNode *test_succ2 = get_successor(node11);
+    // TreeNode *test_pred5 = get_predecessor(node11);
+    // TreeNode *test_succ3 = get_successor(node16);
 
-    if ( test_pred1 != NULL ) { 
-        cout << "Predecessor of " << node1->get_val() << " is " <<  test_pred1->get_val() << endl;
-    } else { cout << "Predecessor of " << node1->get_val() << " is NULL. " << endl; }
+    // if ( test_pred1 != NULL ) { 
+    //     cout << "Predecessor of " << node1->get_val() << " is " <<  test_pred1->get_val() << endl;
+    // } else { cout << "Predecessor of " << node1->get_val() << " is NULL. " << endl; }
 
-    if ( test_pred2 != NULL ) { 
-        cout << "Predecessor of " << node8->get_val() << " is " <<  test_pred2->get_val() << endl;
-    } else { cout << "Predecessor of " << node8->get_val() << " is NULL. " << endl; }
+    // if ( test_pred2 != NULL ) { 
+    //     cout << "Predecessor of " << node8->get_val() << " is " <<  test_pred2->get_val() << endl;
+    // } else { cout << "Predecessor of " << node8->get_val() << " is NULL. " << endl; }
 
-    if ( test_pred3 != NULL ) { 
-        cout << "Predecessor of " << root->get_val() << " is " <<  test_pred3->get_val() << endl;
-    } else { cout << "Predecessor of " << root->get_val() << " is NULL. " << endl; }
+    // if ( test_pred3 != NULL ) { 
+    //     cout << "Predecessor of " << root->get_val() << " is " <<  test_pred3->get_val() << endl;
+    // } else { cout << "Predecessor of " << root->get_val() << " is NULL. " << endl; }
 
-    if ( test_pred4 != NULL ) { 
-        cout << "Predecessor of " << node9->get_val() << " is " <<  test_pred4->get_val() << endl;
-    } else { cout << "Predecessor of " << node9->get_val() << " is NULL. " << endl; }
+    // if ( test_pred4 != NULL ) { 
+    //     cout << "Predecessor of " << node9->get_val() << " is " <<  test_pred4->get_val() << endl;
+    // } else { cout << "Predecessor of " << node9->get_val() << " is NULL. " << endl; }
 
-    if ( test_succ1 != NULL ) { 
-        cout << "Successor of " << root->get_val() << " is " <<  test_succ1->get_val() << endl;
-    } else { cout << "Successor of " << root->get_val() << " is NULL. " << endl; }
+    // if ( test_succ1 != NULL ) { 
+    //     cout << "Successor of " << root->get_val() << " is " <<  test_succ1->get_val() << endl;
+    // } else { cout << "Successor of " << root->get_val() << " is NULL. " << endl; }
 
-    if ( test_succ2 != NULL ) { 
-        cout << "Successor of " << node11->get_val() << " is " <<  test_succ2->get_val() << endl;
-    } else { cout << "Successor of " << node11->get_val() << " is NULL. " << endl; }
+    // if ( test_succ2 != NULL ) { 
+    //     cout << "Successor of " << node11->get_val() << " is " <<  test_succ2->get_val() << endl;
+    // } else { cout << "Successor of " << node11->get_val() << " is NULL. " << endl; }
 
+    // if ( test_pred5 != NULL ) { 
+    //     cout << "Predecessor of " << node11->get_val() << " is " <<  test_pred5->get_val() << endl;
+    // } else { cout << "Predecessor of " << node11->get_val() << " is NULL. " << endl; }
+
+    // if ( test_succ3 != NULL ) { 
+    //     cout << "Successor of " << node16->get_val() << " is " <<  test_succ3->get_val() << endl;
+    // } else { cout << "Successor of " << node16->get_val() << " is NULL. " << endl; }
+
+    cout << endl;
+    
+    cout << endl;
+    cout << "Inorder Traversal:\t";
     inorder_traversal(root);
     cout << endl;
 
+    cout << endl;
+    cout << "Deleting 40..." << endl;
     root = delete_node(root, 40);
 
+    cout << endl;
+    cout << "Inorder Traversal:\t";
     inorder_traversal(root);
     cout << endl;
 
+    cout << endl;
+    cout << "Deleting 20..." << endl;
     root = delete_node(root, 20);
 
+    cout << endl;
+    cout << "Inorder Traversal\t";
     inorder_traversal(root);
+    cout << endl;
+
     cout << endl;
 
 }

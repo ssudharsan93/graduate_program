@@ -1,18 +1,16 @@
 This folder contains a
   -Makefile
-  -hw1_bubble_sort.cpp source file
-  -hw1_ternary_search.cpp source file
-  -ListNode.cpp source file
-  -ListNode.h header file
+  -main.cpp source file
+  -TreeNode.cpp source file
+  -TreeNode.h header file
 
 In order to compile the files in this folder,
 and create executables, you simply run the
 `make` command on the command line. `make clean`
 will get rid of executables and source files.
 
-In order to run the 2 executable files
-'hw1_bubble_sort' and 'hw1_ternary_search'
-simply run `./hw1_bubble_sort` on the command
-line to run the linked list bubble sort algorithm
-and simply run `./hw1_ternary_search` on the command
-line to run the ternary search algorithm.
+In order to run the executable file
+'hw2_bst_delete' simply run `./hw2_bst_delete` 
+on the command line to run the  binary search tree
+algorithm for inserting and deleting the nodes provided
+in the homework.

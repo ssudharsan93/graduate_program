@@ -38,6 +38,45 @@ int TreeNode::get_val() {
     return this->val;
 }
 
+void connect(TreeNode *parent, TreeNode *child, bool is_left_child) {
+
+    if ( child != NULL ) {
+        child->set_parent(parent);
+    }
+
+    if ( is_left_child ) { 
+        parent->set_left_child(child);
+    } else { 
+        parent->set_right_child(child);
+    }
+
+}
+
+TreeNode* replace( TreeNode *in, TreeNode *out ) {
+
+    TreeNode *parent = out->get_parent();
+
+    if ( parent == NULL ) { // deleting root...
+        out->get_left_child()->set_parent(in);
+        out->get_right_child()->set_parent(in);
+    } 
+
+    else { 
+        if ( out->get_val() < parent->get_val() ) {
+            parent->set_left_child(in);
+        }
+        else { 
+            parent->set_right_child(in);
+        }
+    }
+
+    in->set_parent(parent);
+    in->set_left_child(out->get_left_child());
+    in->set_right_child(out->get_right_child());
+
+    return in;
+}
+
 // Binary Search Tree Methods
 
 TreeNode* insert_node(TreeNode *root, int val){
@@ -45,7 +84,7 @@ TreeNode* insert_node(TreeNode *root, int val){
     TreeNode* prev_node = NULL;
     TreeNode* current_node = root;
 
-    while ( current_node != NULL ) {            
+    while ( current_node != NULL ) { // Search till you reach closest leaf node     
         if ( val <= current_node->get_val() ) {
             prev_node = current_node;
             current_node = current_node->get_left_child();
@@ -57,21 +96,29 @@ TreeNode* insert_node(TreeNode *root, int val){
         }
     }
 
-    if ( prev_node == NULL ){
+    if ( prev_node == NULL ){ // Inserting at Root
         root = new TreeNode(val);
-        current_node = root;
+        return root;
     } 
+
+    else { 
     
-    else if ( val <= prev_node->get_val() ) {
-        current_node = new TreeNode(val);
-        current_node->set_parent(prev_node);
-        prev_node->set_left_child(current_node);
-    } 
-    
-    else {
-        current_node = new TreeNode(val);
-        current_node->set_parent(prev_node);
-        prev_node->set_right_child(current_node);
+        if ( val < prev_node->get_val() ) { // Node is less than Parent
+            current_node = new TreeNode(val);
+            current_node->set_parent(prev_node);
+            prev_node->set_left_child(current_node);
+        } 
+        
+        else if ( val > prev_node->get_val() ) { // Node is more than Parent
+            current_node = new TreeNode(val);
+            current_node->set_parent(prev_node);
+            prev_node->set_right_child(current_node);
+        }
+
+        else { // An equal node is found.
+            return prev_node;
+        }
+
     }
 
     return current_node;
@@ -80,66 +127,69 @@ TreeNode* insert_node(TreeNode *root, int val){
 
 TreeNode* delete_node(TreeNode *root, int val){
 
-    TreeNode *prev_node = NULL;
+    TreeNode *parent_current_node = NULL;
     TreeNode *current_node = root;
 
-    while ( current_node->get_val() != val  && current_node != NULL ) {
+    while ( current_node != NULL && current_node->get_val() != val ) {
         if ( val < current_node->get_val() ) {
-            prev_node = current_node;
+            parent_current_node = current_node;
             current_node = current_node->get_left_child();
         }
 
         else {
-            prev_node = current_node;
-            current_node = current_node->get_left_child();
+            parent_current_node = current_node;
+            current_node = current_node->get_right_child();
         }
     }
 
-    if ( current_node == NULL ) { return root; }
+    if ( current_node == NULL ) { return root; } // Didn't find the element. Returns root
 
     if ( current_node->get_left_child() == NULL && current_node->get_right_child() == NULL ) {
-        if ( val > prev_node->get_val() ) { // right leaf node
-            prev_node->set_right_child(NULL);
-            current_node->set_parent(NULL);
+        if ( parent_current_node->get_right_child() == current_node ) { // right leaf node
+            parent_current_node->set_right_child(NULL);
         }
-
         else { // left leaf node
-                prev_node->set_left_child(NULL);
-                current_node->set_parent(NULL);
+                parent_current_node->set_left_child(NULL);
         }
+        current_node->set_parent(NULL);
     } 
 
     else if ( current_node->get_left_child() == NULL && current_node->get_right_child() != NULL ) {
         
-        TreeNode* successor = get_successor(current_node);
+        TreeNode *successor = get_successor(current_node);
 
-        successor->get_parent()->set_left_child(successor->get_right_child());
+        connect(successor->get_parent(), successor->get_right_child(), true);
+        TreeNode *new_node = replace(successor, current_node);
 
-        if ( successor->get_right_child() != NULL ) {
-            successor->get_right_child()->set_parent(successor->get_parent());
+        if ( new_node->get_parent() == NULL ) {
+            root = new_node;
         }
 
-        if ( prev_node == NULL ) { // deleting root...
-        
-            root->get_left_child()->set_parent(successor);
-            root->get_right_child()->set_parent(successor);
-            successor->set_left_child(root->get_left_child());
-            successor->set_right_child(root->get_right_child());
-            root = successor;
-        
-        } else {
+        // if ( parent_current_node == NULL ) { // deleting root...
 
-            if ( val > prev_node->get_val() ) { 
-                prev_node->set_right_child(successor); 
-            } // deleting a right child...
-            else { 
-                prev_node->set_left_child(successor); 
-            } // deleting a left child... 
-            successor->set_parent(prev_node);
-            successor->set_left_child(current_node->get_left_child());
-            successor->set_right_child(current_node->get_right_child());
+        //     // replace(successor, root, true)
+        //     root->get_left_child()->set_parent(successor);
+        //     root->get_right_child()->set_parent(successor);
+        //     successor->set_left_child(root->get_left_child());
+        //     successor->set_right_child(root->get_right_child());
+        //     root = successor;
+        
+        // } else { // deleting middle node...
 
-        }
+        //     // replace(successor, current_node, true)
+        //     if ( val > parent_current_node->get_val() ) { 
+        //         parent_current_node->set_right_child(successor); 
+        //     } // deleting a right child...
+
+        //     // replace(successor, current_node, false)
+        //     else { 
+        //         parent_current_node->set_left_child(successor); 
+        //     } // deleting a left child... 
+        //     successor->set_parent(parent_current_node);
+        //     successor->set_left_child(current_node->get_left_child());
+        //     successor->set_right_child(current_node->get_right_child());
+
+        // }
 
     }
 
@@ -147,35 +197,37 @@ TreeNode* delete_node(TreeNode *root, int val){
         
         TreeNode* predecessor = get_predecessor(current_node);
 
-        predecessor->get_parent()->set_right_child(predecessor->get_left_child());
+        connect(predecessor->get_parent(), predecessor->get_left_child(), false);
         
-        if ( predecessor->get_left_child() != NULL ) {
-            predecessor->get_left_child()->set_parent(predecessor->get_parent());
+        TreeNode *new_node = replace(predecessor, current_node);
+
+        if ( new_node->get_parent() == NULL ) {
+            root = new_node;
         }
 
-        if ( prev_node == NULL ) { // deleting root...
+        // if ( parent_current_node == NULL ) { // deleting root...
         
-            root->get_left_child()->set_parent(predecessor);
-            root->get_right_child()->set_parent(predecessor);
-            predecessor->set_left_child(root->get_left_child());
-            predecessor->set_right_child(root->get_right_child());
-            root = predecessor;
+        //     root->get_left_child()->set_parent(predecessor);
+        //     root->get_right_child()->set_parent(predecessor);
+        //     predecessor->set_left_child(root->get_left_child());
+        //     predecessor->set_right_child(root->get_right_child());
+        //     root = predecessor;
         
-        } else {
+        // } else { // deleting a middle node...
 
-            if ( val > prev_node->get_val() ) { 
-                prev_node->set_right_child(predecessor); 
+        //     if ( val > parent_current_node->get_val() ) { 
+        //         parent_current_node->set_right_child(predecessor); 
                 
-            } // deleting a right child...
-            else { 
-                prev_node->set_left_child(predecessor); 
-            } // deleting a left child...
+        //     } // deleting a right child...
+        //     else { 
+        //         parent_current_node->set_left_child(predecessor); 
+        //     } // deleting a left child...
 
-            predecessor->set_left_child(current_node->get_left_child());
-            predecessor->set_right_child(current_node->get_right_child());
-            predecessor->set_parent(prev_node);
+        //     predecessor->set_left_child(current_node->get_left_child());
+        //     predecessor->set_right_child(current_node->get_right_child());
+        //     predecessor->set_parent(parent_current_node);
 
-        }
+        // }
 
     }
 
@@ -185,12 +237,24 @@ TreeNode* delete_node(TreeNode *root, int val){
 
 TreeNode* get_successor(TreeNode *node) {
 
-    if ( node->get_right_child() == NULL ) { return NULL; }
-    
-    TreeNode *current_node = node->get_right_child();
+    TreeNode *current_node;
 
-    while ( current_node->get_left_child() != NULL ) {
-        current_node = current_node->get_left_child();
+    if ( node->get_right_child() == NULL ) {
+        current_node = node;
+        while ( current_node->get_parent() != NULL &&
+                current_node->get_parent()->get_left_child() != current_node ){
+            current_node = current_node->get_parent();
+        }
+
+        current_node = current_node->get_parent();
+    } 
+    
+    else {
+        current_node = node->get_right_child();
+
+        while ( current_node->get_left_child() != NULL ) {
+            current_node = current_node->get_left_child();
+        }
     }
 
     return current_node;
@@ -199,12 +263,24 @@ TreeNode* get_successor(TreeNode *node) {
 
 TreeNode* get_predecessor(TreeNode *node) {
 
-    if ( node->get_left_child() == NULL ) { return NULL; }
-    
-    TreeNode *current_node = node->get_left_child();
+    TreeNode *current_node;
 
-    while ( current_node->get_right_child() != NULL ) {
-        current_node = current_node->get_right_child();
+    if ( node->get_left_child() == NULL ) {
+        current_node = node;
+        while ( current_node->get_parent() != NULL &&
+                current_node->get_parent()->get_right_child() != current_node ){
+            current_node = current_node->get_parent();
+        }
+
+        current_node = current_node->get_parent();
+    } 
+    
+    else {
+    
+        current_node = node->get_left_child();
+        while ( current_node->get_right_child() != NULL ) {
+            current_node = current_node->get_right_child();
+        }
     }
 
     return current_node;
