@@ -5,7 +5,7 @@ Memory::Memory(){
 }
 
 Memory::~Memory(){
-    delete this->Mem;
+    delete [] this->Mem;
 }
 
 Memory::Memory(int size){

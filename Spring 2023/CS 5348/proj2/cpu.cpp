@@ -65,9 +65,7 @@ bool CPU::cpu_execute_instruction(){
 
         case 6: //6 (ifgo) m-addr If AC > 0 then go to the address given in Mem[m-addr]
             MAR = this->cpu_mem_address(IR1);
-            mem = returnMemory();
-            mem->mem_read();
-            if ( AC > 0 ) { PC = this->cpu_mem_address(MBR); }
+            if ( AC > 0 ) { PC = MAR; }
             break;
 
         case 7: //7 (print) Null Print the value in AC
@@ -77,8 +75,6 @@ bool CPU::cpu_execute_instruction(){
             
             to_be_printed = "AC : " + to_string(AC);
             
-            cout << to_be_printed << "For Process: " << process_id << endl;
-
             buffer = new char[to_be_printed.size() + 1];
             strcpy(buffer, to_be_printed.c_str());
             print_print(buffer, process_id);
@@ -112,6 +108,7 @@ bool CPU::cpu_execute_instruction(){
     }
 
     return true;
+
 } // For each instruction code, perform the simulated hardware operations
 
 
@@ -135,7 +132,14 @@ int CPU::cpu_operation(){
         }
     }
 
-    if ( executing == false ){ return 0; }
-    if ( time_expiration == true ) { return 1; }
+    if ( executing == false ){
+
+        cout << "IR0: " << IR0 << ", IR1: " << IR1 << endl;
+        cout << "Exiting at : " << PC << endl;
+        return 0; 
+    }
+    if ( time_expiration == true ) { 
+        return 1; 
+    }
 
 }            // Loop for executing instructions, starting from 0 till the exit instruction

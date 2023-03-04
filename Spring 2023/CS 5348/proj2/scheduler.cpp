@@ -217,11 +217,10 @@ void Scheduler::process_init(){
 void Scheduler::process_submit(int base){
     
     PCB* new_proc;
-
+    
     new_proc = process_init_PCB(base);
 
     if ( base != 0 ){
-        
         print_init_spool(new_proc->get_PID());
         this->process_insert_readyQ(new_proc);
         this->process_dump_readyQ();
@@ -248,7 +247,7 @@ void Scheduler::process_execute(){
 
         this->current_proc = proc_to_be_run;
 
-        cout << "Scheduler: Now Running: " << this->current_proc->get_PID() << endl;
+        cout << "Scheduler: Now Running Process PID: " << this->current_proc->get_PID() << endl;
 
     }
 
@@ -256,7 +255,6 @@ void Scheduler::process_execute(){
     
     if ( return_code == 0 ) {
 
-        cout << "Process PID: " << this->current_proc->get_PID() << "Return Code: " << return_code << endl;
         cout << "Process PID: " << this->current_proc->get_PID() << " exiting..." << endl;
         this->process_exit();
         this->process_dump_readyQ();
