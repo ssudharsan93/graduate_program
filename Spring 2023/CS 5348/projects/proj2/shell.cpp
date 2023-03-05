@@ -134,7 +134,7 @@ void Shell::shell_command(){
     char input;
 
     while ( !TERMINATE ) {
-        cout << "Shell Command> ";
+	cout << "Shell Command> ";
         cin.get(input);
 
         if ( !isdigit(input) || input == '\n' ) {
@@ -148,7 +148,8 @@ void Shell::shell_command(){
 
         switch(cmd){
             case 0:
-s                this->shell_terminate_system();
+	        usleep(1000000);
+                this->shell_terminate_system();
                 continue;
             case 1:
                 this->shell_submit_new_process();

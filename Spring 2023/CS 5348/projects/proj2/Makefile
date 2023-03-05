@@ -2,13 +2,13 @@ EXECUTABLE = computer.exe
 SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp scheduler.cpp print.cpp printer.cpp
 HEADERS = computer.h memory.h load.h shell.h cpu.h scheduler.h print.h printer.h
 CXX = g++
-CFLAGS = -g -Wall -std=gnu++11
+CFLAGS = -pthread -g -Wall -std=gnu++11
 OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(EXECUTABLE)
 
 $(EXECUTABLE) : $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(EXECUTABLE)
+	$(CXX) $(CFLAGS) $(OBJECTS) -o $(EXECUTABLE)
 
 computer.o: computer.cpp computer.h
 	$(CXX) $(CFLAGS) -c computer.cpp

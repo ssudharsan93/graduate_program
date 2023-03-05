@@ -88,8 +88,8 @@ void run_computer() {
     pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
 
     while( !TERMINATE ) {
-        usleep(500);
-        scheduler->process_execute();
+        usleep(10000);
+	scheduler->process_execute();
     }
 
     pthread_join(shell_thread, NULL);

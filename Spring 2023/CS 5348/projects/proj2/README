@@ -10,3 +10,15 @@ if necessary and make the corresponding 'computer.exe' file necessary to run
 the code. It will then take in input from comp.in (a sample comp.in) file is
 provided and then write out to comp.out. It will also run computer.exe
 while taking in input from comp.in and pipe the output to the 'wc' command.
+
+Alternatively you can run this script simply by running `./computer.exe`
+or by piping in input from comp.in by running `./computer.exe < comp.in`.
+A sample 'comp.in' file is provided for your convenience and some additional
+test scripts 
+
+Assuming that concurrency control is not expected for this project, the
+code results in segmentation fault sporadically, due to a lack of concurrency
+control, but also completes sporadically.
+
+
+WARNING: 
