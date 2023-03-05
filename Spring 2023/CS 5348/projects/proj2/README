@@ -25,8 +25,8 @@ idle program personally created. The 'prog_idle' program file can be replaced
 with another idle program file provided it is named 'prog_idle'. 
 
 Assuming that concurrency control is not expected for this project, the
-code results in segmentation fault sporadically, due to a lack of concurrency
-control, but also completes sporadically.
+code results in segmentation fault or hangs expecting input sporadically, 
+due to a lack of concurrency control, but also completes sporadically. 
 
 Additionally, WARNING: 
 
