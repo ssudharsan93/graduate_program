@@ -10,6 +10,10 @@ if necessary and make the corresponding 'computer.exe' file necessary to run
 the code. It will then take in input from comp.in (a sample comp.in) file is
 provided and then write out to comp.out. It will also run computer.exe
 while taking in input from comp.in and pipe the output to the 'wc' command.
+A sample config.sys file is also provided with the three parameters to the
+system provided with a comma separating them. The first parameter being
+the memory size, the second being the time quantum, and the third being
+the printing time.
 
 Alternatively you can run this script simply by running `./computer.exe`
 or by piping in input from comp.in by running `./computer.exe < comp.in`.

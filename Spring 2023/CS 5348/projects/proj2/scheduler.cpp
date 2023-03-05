@@ -274,7 +274,8 @@ void Scheduler::process_execute(){
 
         this->current_proc = proc_to_be_run;
 
-        cout << "Scheduler: Now Running Process PID: " << this->current_proc->get_PID() << endl;
+        cout << "Scheduler: Now Running Process PID: " << this->current_proc->get_PID();
+        cout << " PC: " << this->current_proc->get_PC() << endl;
 
     }
 
@@ -291,6 +292,8 @@ void Scheduler::process_execute(){
         if ( this->current_proc != idlepcb ){
         
             this->process_insert_readyQ(this->current_proc);
+            cout << "Scheduler: Was Running Process PID: " << this->current_proc->get_PID();
+            cout << " PC: " << PC << endl;
         
         }
     
