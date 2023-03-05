@@ -44,6 +44,13 @@ void PCB::save_context(){
 }// Copy the updated register context data back to the PCB
 
 int PCB::get_PID(){ return this->PID; }
+int PCB::get_PC(){ return this->proc_PC; }
+int PCB::get_AC(){ return this->proc_AC; }
+int PCB::get_Base(){ return this->proc_Base; }
+int PCB::get_MAR(){ return this->proc_MAR; }
+int PCB::get_MBR(){ return this->proc_MBR; }
+int PCB::get_IR0(){ return this->proc_IR0; }
+int PCB::get_IR1(){ return this->proc_IR1; }
 
 void PCB::print_contents(){
     cout << endl;
@@ -135,6 +142,13 @@ void Scheduler::process_dump_PCB(){
     auto pcb_struct_end_it = this->pcb_structure->end();
     PCB* curr_proc;
 
+    string header = "pid";
+    string footer = "_spool.txt";
+    string fname;
+
+    string process_id, process_Base, process_PC, process_IR0;
+    string process_IR1, process_AC, process_MAR, process_MBR;
+
     cout << "===========================" << endl;
     cout << "       PCB Dump            " << endl;
     cout << "===========================" << endl;
@@ -144,9 +158,22 @@ void Scheduler::process_dump_PCB(){
         
         curr_proc = pcb_struct_it->second;
 
-        curr_proc->print_contents();
+        if ( curr_proc->get_PID() == 1 ) { continue; }
 
-        cout << "\t--------------------------------------" << endl;
+        process_id = to_string(curr_proc->get_PID());
+        process_Base = to_string(curr_proc->get_Base());
+        process_PC = to_string(curr_proc->get_PC());
+        process_IR0 = to_string(curr_proc->get_IR0());
+        process_IR1 = to_string(curr_proc->get_IR1());
+        process_AC = to_string(curr_proc->get_AC());
+        process_MAR = to_string(curr_proc->get_MAR());
+        process_MBR = to_string(curr_proc->get_MBR());
+
+        fname = header + process_id + footer;
+
+        cout << "Index: [ Filename:" << fname <<", PID:" << process_id << ", BASE:" << process_Base;
+        cout << ", PC:" << process_PC << ", IR0:" << process_IR0 << ", IR1:" << process_IR1;
+        cout << ", AC:" << process_AC << ", MAR:" << process_MAR << ", MBR:" << process_MBR << " ]" << endl;
 
     }
 }

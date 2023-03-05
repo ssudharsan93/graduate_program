@@ -101,11 +101,20 @@ void print_end_spool(int PID){
 //Function print() sends the buffer and PID to printer via the pipe.
 void print_print(char buffer[], int PID) {
 
-    cout << "Entered Print Instruction" << endl;
     if ( pid > 0 ){ 
         cout << "Preparing to send print instruction." << endl;
         string msg(buffer);
         send_instruction("PRT", PID, msg);
+    }
+
+}
+
+//This function is called to inform
+// the printer to dump its spool information.
+void print_dump_spool() {
+
+    if ( pid > 0 ){     
+        send_instruction("DMP", 0000); //PID value is ignored by printer component
     }
 
 }

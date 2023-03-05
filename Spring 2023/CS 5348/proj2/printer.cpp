@@ -114,6 +114,7 @@ void printer_end_spool(int PID, FILE *spool_fp, FILE *printer_fp){
 }
 
 void printer_dump_spool(map<int, FILE*> *file_desc_struct){
+    
     auto f_desc_struct_begin = file_desc_struct->begin();
     auto f_desc_struct_end = file_desc_struct->end();
     int PID;
@@ -129,6 +130,10 @@ void printer_dump_spool(map<int, FILE*> *file_desc_struct){
         PID = f_desc_struct_it->first;
         cout << index << ":" << PID << endl;
     }
+
+    string return_msg = "Dump Spool Finish";
+    send_response(return_msg);
+
 }
 
 //This function is for handling the regular print instructions.
@@ -187,6 +192,7 @@ void printer_main(int PrintingTime) {
     char SPL[] = "SPL";
     char END[] = "END";
     char PRT[] = "PRT";
+    char DMP[] = "DMP";
     char TRM[] = "TRM";
 
     char CMD[100];
@@ -239,6 +245,10 @@ void printer_main(int PrintingTime) {
             fp = file_desc_struct->at(PID);
             printer_print(message, fp);
         } 
+
+        else if ( strcmp(command, DMP) == 0 ) {
+            printer_dump_spool(file_desc_struct);
+        }
         
         else if ( strcmp(command, TRM) == 0 ) {
             printer_terminate(file_desc_struct, printer_out_fp);

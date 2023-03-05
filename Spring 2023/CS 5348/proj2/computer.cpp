@@ -89,7 +89,7 @@ void run_computer() {
 
     while( !TERMINATE ) {
         usleep(500);
-        scheduler->process_execute();
+        //scheduler->process_execute();
     }
 
     pthread_join(shell_thread, NULL);

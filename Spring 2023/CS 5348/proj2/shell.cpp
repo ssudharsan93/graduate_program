@@ -124,7 +124,7 @@ void Shell::shell_dump_process_information() {
 }
 
 void Shell::shell_dump_spool_information() {
-    cout << "Spool!!!" << endl;
+    print_dump_spool();
     return;
 }
 

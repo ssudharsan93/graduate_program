@@ -21,6 +21,13 @@ public:
     void set_context();
     void save_context();
     int get_PID();
+    int get_PC();
+    int get_AC();
+    int get_Base();
+    int get_MAR();
+    int get_MBR();
+    int get_IR0();
+    int get_IR1();
     void print_contents();
 };
 

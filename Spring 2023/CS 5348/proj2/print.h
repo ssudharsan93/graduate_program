@@ -25,6 +25,7 @@ void print_init(int PrintingTime);
 void print_init_spool(int PID);
 void print_end_spool(int PID);
 void print_print(char buffer[], int PID);
+void print_dump_spool();
 void print_terminate();
 void test_print_component();
 
