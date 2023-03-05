@@ -92,8 +92,7 @@ bool CPU::cpu_execute_instruction(){
                     shell->shell_print_registers();
                     break;
                 case 3:
-                    cout << "Should print memory." << endl;
-                    //shell->shell_print_memory();
+                    shell->shell_print_memory();
                     break;
                 default:
                     break;
@@ -134,10 +133,7 @@ int CPU::cpu_operation(){
     }
 
     if ( executing == false ){
-
-        cout << "IR0: " << IR0 << ", IR1: " << IR1 << endl;
-        cout << "Exiting at : " << PC << endl;
-        return 0; 
+        return 0;
     }
     if ( time_expiration == true ) { 
         return 1; 

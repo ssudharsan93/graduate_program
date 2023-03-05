@@ -148,15 +148,13 @@ void Shell::shell_command(){
 
         switch(cmd){
             case 0:
-                usleep(5000000);
-                this->shell_terminate_system();
+s                this->shell_terminate_system();
                 continue;
             case 1:
                 this->shell_submit_new_process();
                 continue;
             case 2:
-                //this->shell_print_registers();
-                cout << "Should print registers" << endl;
+                this->shell_print_registers();
                 continue;
             case 3:
                 this->shell_print_memory();

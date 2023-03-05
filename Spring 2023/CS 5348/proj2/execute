@@ -8,8 +8,6 @@ make clean
 
 make
 
-${EXEC}
+${EXEC} < ${INPUT_FILE} > ${OUTPUT_FILE}
 
-#${EXEC} < ${INPUT_FILE} > ${OUTPUT_FILE}
-
-#${EXEC} < "${INPUT_FILE}" | wc
+${EXEC} < "${INPUT_FILE}" | wc
