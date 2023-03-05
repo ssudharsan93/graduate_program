@@ -38,9 +38,9 @@ void Shell::shell_submit_new_process(){
     cout << "Program file name: " << input_program_file << endl;
     cout << "Base: "  << base << endl;
 
-    scheduler->process_submit(base);
     FILE *prog_file = loader->load_prog(input_program_file, base);
     loader->load_finish(prog_file);
+    scheduler->process_submit(base);
     
     return;
 
@@ -134,8 +134,6 @@ void Shell::shell_command(){
     char input;
 
     while ( !TERMINATE ) {
-
-        usleep(5000);
         cout << "Shell Command> ";
         cin.get(input);
 
@@ -150,13 +148,15 @@ void Shell::shell_command(){
 
         switch(cmd){
             case 0:
+                usleep(5000000);
                 this->shell_terminate_system();
                 continue;
             case 1:
                 this->shell_submit_new_process();
                 continue;
             case 2:
-                this->shell_print_registers();
+                //this->shell_print_registers();
+                cout << "Should print registers" << endl;
                 continue;
             case 3:
                 this->shell_print_memory();

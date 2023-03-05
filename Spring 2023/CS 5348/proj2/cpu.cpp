@@ -91,8 +91,9 @@ bool CPU::cpu_execute_instruction(){
                 case 2:
                     shell->shell_print_registers();
                     break;
-                case 3: 
-                    shell->shell_print_memory();
+                case 3:
+                    cout << "Should print memory." << endl;
+                    //shell->shell_print_memory();
                     break;
                 default:
                     break;

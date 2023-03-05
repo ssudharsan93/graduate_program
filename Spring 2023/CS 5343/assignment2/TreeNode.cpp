@@ -265,7 +265,7 @@ void postorder_traversal(TreeNode *node){
     return;
 } // print after left child and right child call return
 
-void depth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched) {
+void breadth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched) {
 
     TreeNode* current_node;
 
@@ -294,7 +294,7 @@ void depth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<
 
     while ( to_be_searched->size() != 0 ) {
         current_node = to_be_searched->front();
-        depth_first_search(current_node, to_be_searched, searched);
+        breadth_first_search(current_node, to_be_searched, searched);
     }
 
     return;
@@ -305,7 +305,7 @@ void print_tree(TreeNode *root){
 
     queue<TreeNode*> *to_be_searched = new queue<TreeNode*>();
     queue<TreeNode*> *searched = new queue<TreeNode*>();
-    depth_first_search(root, to_be_searched, searched);
+    breadth_first_search(root, to_be_searched, searched);
 
     int dft_search_size = searched->size();
 

@@ -47,6 +47,8 @@ int main() {
     node17 = insert_node(root, 48);
     node18 = insert_node(root, 46);
 
+    print_tree(root);
+    
     cout << endl;
 
     cout << endl;

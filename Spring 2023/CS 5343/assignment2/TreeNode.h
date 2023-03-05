@@ -28,5 +28,5 @@ TreeNode* get_predecessor(TreeNode *node);
 void inorder_traversal(TreeNode *node); // print after left child call
 void preorder_traversal(TreeNode *node); // print before left child or right child call
 void postorder_traversal(TreeNode *node); // print after left child and right child call return
-void depth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched);
+void breadth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched);
 void print_tree(TreeNode *root);

@@ -39,7 +39,7 @@ ReadyQueue* returnReadyQueue(){
 
 void run_computer() {
 
-    TERMINATE = 0;
+    TERMINATE = false;
     PROC_SEEN_BY_COMPUTER = 1;
 
     pthread_t shell_thread;
@@ -89,7 +89,7 @@ void run_computer() {
 
     while( !TERMINATE ) {
         usleep(500);
-        //scheduler->process_execute();
+        scheduler->process_execute();
     }
 
     pthread_join(shell_thread, NULL);
