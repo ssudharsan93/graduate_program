@@ -34,4 +34,4 @@ printer.o: printer.cpp printer.h
 	$(CXX) $(CFLAGS) -c printer.cpp
 
 clean:
-	rm -f ${EXECUTABLE1} ${EXECUTABLE2} ${EXECUTABLE3} $(OBJECT1) ${OBJECT2}
+	rm -f $(EXECUTABLE1) $(EXECUTABLE2) $(EXECUTABLE3) $(OBJECT1) $(OBJECT2) $(OBJECT3) $(OBJECT4)
