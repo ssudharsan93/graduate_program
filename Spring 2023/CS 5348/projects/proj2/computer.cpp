@@ -46,7 +46,7 @@ void run_computer() {
 
     int mem_size;
     char delim[] = " ,";
-    char idle_prog_name[] = "prog_idle";
+    char idle_prog_name[] = "prog-idle";
 
     char config_data[80];
 
