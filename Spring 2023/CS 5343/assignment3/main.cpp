@@ -9,12 +9,10 @@ int Parent(int index) {
 }
 
 int Left(int index) {
-    //cout << "\t Left Index: " << 2 * index << endl;
     return 2 * index;
 }
 
 int Right(int index) {
-    //cout << "\t Right Index: " << 2 * index + 1 << endl;
     return 2 * index + 1;
 }
 
