@@ -76,4 +76,22 @@ int main() {
 
     cout << endl;
 
+    cout << "\t" << "  2  " << endl; // 5 total characters
+    cout << "\t" << " / \\ " << endl;
+    cout << "\t" << "1   3" << endl;
+
+    cout << endl;
+
+    cout << "\t" << "     7     " << endl;
+    cout << "\t" << "  4     9 " << endl;
+    cout << "\t" << "3   5 8   10" << endl;
+
+    cout << endl;
+
+    cout << "\t" << "         10       " << endl;
+    cout << "\t" << "     5         15    " << endl;
+    cout << "\t" << " 1    9      11     19 " << endl;
+    cout << "\t" << "0 2 7 8 10 12  18  20" << endl;
+
+
 }

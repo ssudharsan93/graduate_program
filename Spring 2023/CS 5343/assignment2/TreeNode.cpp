@@ -301,6 +301,19 @@ void breadth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queu
 
 }
 
+int get_node_count(TreeNode *node) {
+    if ( node == NULL ) {
+        return 0;
+    }
+    else {
+        TreeNode *lch = node->get_left_child();
+        TreeNode *rch = node->get_right_child();
+
+        return 1 + get_node_count(lch) + get_node_count(rch);
+    }
+    
+}
+
 void print_tree(TreeNode *root){
 
     queue<TreeNode*> *to_be_searched = new queue<TreeNode*>();
@@ -311,20 +324,25 @@ void print_tree(TreeNode *root){
 
     TreeNode *current_node;
     int num_of_children = 0;
+    int max_num_of_nodes_of_any_level = 0;
     int num_of_nodes = 1;
 
     int dft_search_content_cntr = 0;
     int level_end_cntr;
+    int level_cntr = 0;
+
+    map<int, int> *level_node_count = new map<int, int>();
+    level_node_count->insert(make_pair(level_cntr, num_of_nodes));   
 
     while ( dft_search_content_cntr < dft_search_size ) {
 
         level_end_cntr = dft_search_content_cntr + num_of_nodes;
-        
+
         while ( dft_search_content_cntr < level_end_cntr ) {
 
             current_node = searched->front();
             searched->pop();
-            cout << current_node->get_val() << "\t";
+            cout << right << "    " << current_node->get_val();
 
             if ( current_node->get_left_child() != NULL ) { 
                 num_of_children = num_of_children + 1; 
@@ -335,16 +353,45 @@ void print_tree(TreeNode *root){
             }
             
             dft_search_content_cntr = dft_search_content_cntr + 1;
+
+            searched->push(current_node);
         }
 
         cout << endl;
+
+        if ( num_of_children > max_num_of_nodes_of_any_level ) {
+            max_num_of_nodes_of_any_level = num_of_children;
+        }
+
+        level_cntr = level_cntr + 1;
         num_of_nodes = num_of_children;
+        level_node_count->insert(make_pair(level_cntr, num_of_nodes));
         num_of_children = 0;
         
+    }
+
+    cout << endl;
+    cout << "Width should correspond to : " << max_num_of_nodes_of_any_level << endl;
+    cout << "Num Levels : " << level_cntr << endl;
+    cout << "Size of Queue: " << searched->size() << endl;
+
+    auto lvl_node_cnt_map_beg = level_node_count->begin();
+    auto lvl_node_cnt_map_end = level_node_count->end();
+
+    for ( auto lvl_node_cnt_map_it = lvl_node_cnt_map_beg; 
+          lvl_node_cnt_map_it != lvl_node_cnt_map_end; 
+          ++lvl_node_cnt_map_it ) {
+        cout << "Level: " << lvl_node_cnt_map_it->first
+             << " has " << lvl_node_cnt_map_it->second
+             << " number of node " << endl;
     }
 
     cout << endl;
 
     return;
 }
+
+// Need to know the number of leaf nodes, thats the max width.
+// Need to know whether that element is a child of a certain element.
+
 

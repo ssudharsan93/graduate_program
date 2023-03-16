@@ -1,5 +1,8 @@
+#ifndef TREENODE_H
+#define TREENODE_H
 #include <iostream>
 #include <queue>
+#include <map>
 
 class TreeNode {
 private:
@@ -29,4 +32,7 @@ void inorder_traversal(TreeNode *node); // print after left child call
 void preorder_traversal(TreeNode *node); // print before left child or right child call
 void postorder_traversal(TreeNode *node); // print after left child and right child call return
 void breadth_first_search(TreeNode *node, queue<TreeNode*> *to_be_searched, queue<TreeNode*> *searched);
+int get_node_count(TreeNode *node);
 void print_tree(TreeNode *root);
+
+#endif TREENODE_H
