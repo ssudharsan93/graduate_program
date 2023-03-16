@@ -1,0 +1,17 @@
+This folder contains a
+  -Makefile
+  -main.cpp source file
+
+In order to compile the files in this folder,
+and create executables, you simply run the
+`make` command on the command line. `make clean`
+will get rid of executables and object files.
+
+In order to run the executable file
+'hw3' simply run `./hw3` 
+on the command line to run the heap sort
+floyd's algorithm.
+
+If you prefer not to compile, the executable file
+`hw3` is provided for you. To run it, simply run `./hw3`
+from the folder you copy it into.
