@@ -9,10 +9,12 @@ int Parent(int index) {
 }
 
 int Left(int index) {
+    //cout << "\t Left Index: " << 2 * index << endl;
     return 2 * index;
 }
 
 int Right(int index) {
+    //cout << "\t Right Index: " << 2 * index + 1 << endl;
     return 2 * index + 1;
 }
 
@@ -24,11 +26,22 @@ void swap( int heap[], int first_index, int second_index ) {
 
 }
 
-void maxPercolateDown(int heap[], int index) {
+void PrintHeap(int heap[]) {
 
     int heap_size = heap[0];
 
-    int left_child_index, right_child_index, max_val;
+    cout << "[ ";
+    
+    for ( int heap_cntr = 1; heap_cntr < heap_size + 1; heap_cntr++ ) {
+        cout << heap[heap_cntr] << " ";
+    }
+    
+    cout << "]" << endl;
+}
+
+void maxPercolateDown(int heap[], int index, int heap_size) {
+
+    int left_child_index, right_child_index;
 
     left_child_index = Left(index);
     right_child_index = Right(index);
@@ -36,41 +49,30 @@ void maxPercolateDown(int heap[], int index) {
     while ( ! ( left_child_index > heap_size ) || 
              ! ( right_child_index > heap_size ) ) {
 
-        // if parent is less than both children heap property not violated.
+        // if parent is greater than both children heap property not violated.
         if ( ( heap[index] > heap[left_child_index] ) &&
              ( heap[index] > heap[right_child_index] ) ) {
                 return;
         }
 
-        // if only left child exists, swap if left child is less than parent.
+        // if only left child exists, swap if left child is greater than parent.
         // Then return right away. We are at a leaf node.
         if ( right_child_index > heap_size ) {
             if ( heap[index] < heap[left_child_index] ) {
                 swap(heap, index, left_child_index);
-                return;
             }
-        }
-        
-        // set min initially to left child
-        max_val = heap[left_child_index];
+            return;
 
-        // if left child is greater than right child
-        // swap with right child if right child is less than parent.
-        if ( max_val < heap[right_child_index] ) {
-            if ( heap[index] < heap[right_child_index] ) {
-                swap(heap, index, right_child_index);
-                index = right_child_index;
-            }
         }
-        
-        // otherwise swap with left child 
-        // if left child is less than parent.
-        else { 
-            if ( heap[index] < max_val ) {
-                swap(heap, index, left_child_index);
-                index = left_child_index;
-            }
-        }
+
+        // if left child is less than right child
+        // swap with right child otherwise swap with left child 
+        // At this point either the left or right child is greater 
+        // than the parent because of the prior if condition.
+
+        int max_index = heap[left_child_index] > heap[right_child_index] ? left_child_index : right_child_index;
+        swap(heap, index, max_index);
+        index = max_index;
 
         left_child_index = Left(index);
         right_child_index = Right(index);
@@ -94,18 +96,16 @@ void maxBuildHeap(int heap[]){
         }
 
         else { 
-            maxPercolateDown(heap, bh_cntr);
+            maxPercolateDown(heap, bh_cntr, heap_size);
         }
     }
 
 
 }
 
-void minPercolateDown(int heap[], int index) {
+void minPercolateDown(int heap[], int index, int heap_size) {
 
-    int heap_size = heap[0];
-
-    int left_child_index, right_child_index, min_val;
+    int left_child_index, right_child_index;
 
     left_child_index = Left(index);
     right_child_index = Right(index);
@@ -124,30 +124,18 @@ void minPercolateDown(int heap[], int index) {
         if ( right_child_index > heap_size ) {
             if ( heap[index] > heap[left_child_index] ) {
                 swap(heap, index, left_child_index);
-                return;
             }
+            return;
         }
-        
-        // set min initially to left child
-        min_val = heap[left_child_index];
 
         // if left child is greater than right child
-        // swap with right child if right child is less than parent.
-        if ( min_val > heap[right_child_index] ) {
-            if ( heap[index] > heap[right_child_index] ) {
-                swap(heap, index, right_child_index);
-                index = right_child_index;
-            }
-        }
-        
-        // otherwise swap with left child 
-        // if left child is less than parent.
-        else { 
-            if ( heap[index] > min_val ) {
-                swap(heap, index, left_child_index);
-                index = left_child_index;
-            }
-        }
+        // swap with right child otherwise swap with left child 
+        // At this point either the left or right child is less 
+        // than the parent because of the prior if condition.
+
+        int min_index = heap[left_child_index] < heap[right_child_index] ? left_child_index : right_child_index;
+        swap(heap, index, min_index);
+        index = min_index;
 
         left_child_index = Left(index);
         right_child_index = Right(index);
@@ -171,31 +159,44 @@ void minBuildHeap(int heap[]){
         }
 
         else { 
-            minPercolateDown(heap, bh_cntr);
+            minPercolateDown(heap, bh_cntr, heap_size);
         }
     }
 
 }
 
-void MinHeapify(int heap[]){
-    return;
-}
+void minHeapSort(int heap[]){
 
-void MaxHeapify(int heap[]){
-    return;
-}
-
-void PrintHeap(int heap[]) {
+    maxBuildHeap(heap);
 
     int heap_size = heap[0];
 
-    cout << "[ ";
-    
-    for ( int heap_cntr = 1; heap_cntr < heap_size + 1; heap_cntr++ ) {
-        cout << heap[heap_cntr] << " ";
+    int bh_cntr = heap_size;
+
+    while ( bh_cntr > 0 ) {
+        swap(heap, 1, bh_cntr);
+        bh_cntr = bh_cntr - 1;
+        maxPercolateDown(heap, 1, bh_cntr);
     }
-    
-    cout << "]" << endl;
+
+    return;
+}
+
+void maxHeapSort(int heap[]){
+
+    minBuildHeap(heap);
+
+    int heap_size = heap[0];
+
+    int bh_cntr = heap_size;
+
+     while ( bh_cntr > 0 ) {        
+        swap(heap, 1, bh_cntr);
+        bh_cntr = bh_cntr - 1;
+        minPercolateDown(heap, 1, bh_cntr);
+    }
+
+    return;
 }
 
 //HEAP METHODS_END
@@ -205,8 +206,10 @@ void PrintHeap(int heap[]) {
 int main() {
     int heap_size = 15;
     int heap[heap_size + 1];
+    int heap1[heap_size + 1];
 
     heap[0] = heap_size;
+    heap1[0] = heap_size;
 
     int input[15] = {
         40, 60, 20, 80, 50, 
@@ -218,18 +221,39 @@ int main() {
         heap[heap_cntr] = input[heap_cntr - 1]; 
     }
 
+    for ( int heap1_cntr = 1; heap1_cntr < heap_size + 1; heap1_cntr++ ) {
+        heap1[heap1_cntr] = input[heap1_cntr - 1];
+    }
+
     cout << endl;
     cout << "Heap is: \t";
     cout << endl;
-
     PrintHeap(heap);
-    //minBuildHeap(heap);
-    maxBuildHeap(heap);
+    
+    // minBuildHeap(heap);
+
+    // cout << endl;
+    // cout << "After Min BuildHeap the Heap is: \t";
+    // cout << endl;
+    // PrintHeap(heap);
+
+    // cout << endl;
+    // cout << "Heap is: \t";
+    // cout << endl;
+    // PrintHeap(heap);
+
+    // maxBuildHeap(heap);
+
+    // cout << endl;
+    // cout << "After Max BuildHeap the Heap is: \t";
+    // cout << endl;
+    // PrintHeap(heap);
+
+    maxHeapSort(heap);
 
     cout << endl;
-    cout << "After Max BuildHeap the Heap is: \t";
+    cout << "After the Max Heapsort the Heap is: \t";
     cout << endl;
-    
     PrintHeap(heap);
 
     cout << endl;
