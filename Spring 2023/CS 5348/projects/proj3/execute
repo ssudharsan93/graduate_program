@@ -1,0 +1,13 @@
+#! /bin/bash
+
+EXEC="./computer.exe"
+INPUT_FILE="./comp.in"
+OUTPUT_FILE="./comp.out"
+
+make clean
+
+make
+
+${EXEC} < ${INPUT_FILE} > ${OUTPUT_FILE}
+
+${EXEC} < ${INPUT_FILE} | wc

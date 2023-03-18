@@ -1,0 +1,46 @@
+Sudharsan Sundaravenkataraman
+University of Texas at Dallas
+Professor Yen
+CS 5348.501
+UTD ID: 2021668140
+
+The script is run, just by running the 'execute' script.
+Namely, `./execute`. This will clean the directory
+if necessary and make the corresponding 'computer.exe' file necessary to run
+the code. It will then take in input from comp.in (a sample comp.in) file is
+provided and then write out to comp.out. It will also run computer.exe
+while taking in input from comp.in and pipe the output to the 'wc' command.
+A sample config.sys file is also provided with the three parameters to the
+system provided with a comma separating them. The first parameter being
+the memory size, the second being the time quantum, and the third being
+the printing time.
+
+Alternatively you can run this script simply by running `./computer.exe`
+or by piping in input from comp.in by running `./computer.exe < comp.in`.
+A sample 'comp.in' file is provided for your convenience and some additional
+test scripts named 'add', 'mul', and 'prog1'. These program files do very simple
+operations, like multiplying a value repeatedly or adding a value repeatedly, or
+sleeping. 'prog-idle' is also provided in this directory. This is a sample
+idle program personally created. The 'prog-idle' program file can be replaced
+with another idle program file provided it is named 'prog-idle'. 
+
+Assuming that concurrency control is not expected for this project, the
+code sporadically results in segmentation fault or hangs expecting input  
+due to the lack of concurrency control. The program also completes sporadically.
+
+Sleeps were added to allow this program to run more consistently. A small sleep was added 
+between process execution, and a substantial sleep was added when the user 
+submits a termination command, to allow processes a chance to complete.
+
+Additionally, WARNING: 
+
+Also, Assuming that memory management was not expected for this project, if you 
+provide a base value of 0, the idle program will be overwritten. Therefore,
+it is required for this executable, that base values greater than 15 are provided,
+since the length of the idle program written for this project has a length of 15 words.
+
+If a personal/custom 'prog-idle' program is used, care should be taken to provide base
+values for submitted programs such that it doesn't overlap or overwrite the idle
+program. The idle program will be loaded starting at array index 0 for the memory variable
+and populated until the end of the idle program. 
+
