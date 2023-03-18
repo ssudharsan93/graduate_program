@@ -37,7 +37,7 @@ void PrintHeap(int heap[]) {
     cout << "]" << endl;
 }
 
-void maxPercolateDown(int heap[], int index, int heap_size) {
+void maxHeapify(int heap[], int index, int heap_size) {
 
     int left_child_index, right_child_index;
 
@@ -94,14 +94,14 @@ void maxBuildHeap(int heap[]){
         }
 
         else { 
-            maxPercolateDown(heap, bh_cntr, heap_size);
+            maxHeapify(heap, bh_cntr, heap_size);
         }
     }
 
 
 }
 
-void minPercolateDown(int heap[], int index, int heap_size) {
+void minHeapify(int heap[], int index, int heap_size) {
 
     int left_child_index, right_child_index;
 
@@ -157,7 +157,7 @@ void minBuildHeap(int heap[]){
         }
 
         else { 
-            minPercolateDown(heap, bh_cntr, heap_size);
+            minHeapify(heap, bh_cntr, heap_size);
         }
     }
 
@@ -174,7 +174,7 @@ void minHeapSort(int heap[]){
     while ( bh_cntr > 0 ) {
         swap(heap, 1, bh_cntr);
         bh_cntr = bh_cntr - 1;
-        maxPercolateDown(heap, 1, bh_cntr);
+        maxHeapify(heap, 1, bh_cntr);
     }
 
     return;
@@ -191,7 +191,7 @@ void maxHeapSort(int heap[]){
      while ( bh_cntr > 0 ) {        
         swap(heap, 1, bh_cntr);
         bh_cntr = bh_cntr - 1;
-        minPercolateDown(heap, 1, bh_cntr);
+        minHeapify(heap, 1, bh_cntr);
     }
 
     return;
@@ -224,16 +224,16 @@ int main() {
     }
 
     cout << endl;
-    cout << "Heap is: \t";
+    cout << "Array is: \t";
     cout << endl;
     PrintHeap(heap);
     
-    // minBuildHeap(heap);
+    minBuildHeap(heap);
 
-    // cout << endl;
-    // cout << "After Min BuildHeap the Heap is: \t";
-    // cout << endl;
-    // PrintHeap(heap);
+    cout << endl;
+    cout << "After Min BuildHeap / Floyd's Algorithm the Heap is: \t";
+    cout << endl;
+    PrintHeap(heap);
 
     // cout << endl;
     // cout << "Heap is: \t";
