@@ -52,8 +52,10 @@ void run_computer() {
     int mem_size;
     char delim[] = " ,";
     char idle_prog_name[] = "prog-idle";
+    char *printer_ip_address;
+    char *printer_port_number;
 
-    char config_data[80];
+    char config_data[255];
 
     ifstream config_file("config.sys");
 
@@ -61,11 +63,12 @@ void run_computer() {
       cout << "Error: config.sys doesn't exist" << endl;
     }
 
-    char digit;
-    int mem_size_read_counter = 0;
-
-    config_file.getline(config_data, 80);
+    config_file.getline(config_data, 255);
     char *config_arg = strtok(config_data, delim);
+    printer_ip_address = config_arg;
+    config_arg = strtok(NULL, delim);
+    printer_port_number = config_arg;
+    config_arg = strtok(NULL, delim);
     mem_size = atoi(config_arg);
     config_arg = strtok(NULL, delim);
     TQ = atoi(config_arg);
@@ -74,6 +77,8 @@ void run_computer() {
 
     config_file.close();
 
+    cout << "Printer Ip Address: " << printer_ip_address << endl;
+    cout << "Printer Port Number: " << printer_port_number << endl;
     cout << "Memory Size: " << mem_size << endl;
     cout << "Time Quantum: " << TQ << endl;
     cout << "Printing Time: " << PT << endl;
