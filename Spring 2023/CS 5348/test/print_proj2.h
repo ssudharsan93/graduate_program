@@ -1,5 +1,5 @@
-#ifndef PRINT_H
-#define PRINT_H
+#ifndef PRINT_PROJ2_H
+#define PRINT_PROJ2_H
 
 #include <iostream>
 #include <cstdio>
@@ -11,7 +11,7 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#include "printer.h"
+#include "printer_proj2.h"
 
 extern int printer_read;
 extern int print_read;
@@ -27,4 +27,4 @@ void print_init_spool(int PID);
 void print_end_spool(int PID);
 void print_terminate();
 
-#endif PRINT_H
+#endif PRINT_PROJ2_H

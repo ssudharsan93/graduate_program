@@ -1,5 +1,5 @@
-#ifndef PRINTER_H
-#define PRINTER_H
+#ifndef PRINTER_PROJ2_H
+#define PRINTER_PROJ2_H
 
 #include <map>
 
@@ -15,4 +15,4 @@ void printer_print(string buffer, FILE *spool_fp);
 void printer_terminate(map<int, FILE*> *file_desc_struct, FILE *printer_fp);
 void printer_main(int PrinterTime);
 
-#endif PRINTER_H
+#endif PRINTER_PROJ2_H

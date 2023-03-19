@@ -1,4 +1,4 @@
-#include "print.h"
+#include "print_proj2.h"
 
 int PT;
 
@@ -35,7 +35,7 @@ void print_spool_to_printout(FILE *spool_fp, FILE *printer_fp, int PID, string f
     string fname;
     string file_header = "pid";
     string process_id = to_string(PID);
-    string file_footer = "_spool.txt";
+    string file_footer = "_proj2_spool.txt";
 
     fname = file_header + process_id + file_footer;
 
@@ -57,7 +57,7 @@ FILE* printer_init() {
 
     send_response(ACK);
 
-    fp = fopen("printer.out", "w");
+    fp = fopen("printer_proj2.out", "w");
     return fp;
 
 }
@@ -69,7 +69,7 @@ FILE* printer_init_spool(int PID){
     FILE *fp = NULL;
     string fname;
     string header = "pid";
-    string footer = "_spool.txt";
+    string footer = "_proj2_spool.txt";
 
     string process_id = to_string(PID);
     fname = header + process_id + footer;
