@@ -1,5 +1,5 @@
-#ifndef PRINTER_MANAGER_H
-#define PRINTER_MANAGER_H
+#ifndef PRINTER_H
+#define PRINTER_H
 
 #include <iostream>
 #include <fstream>
@@ -7,31 +7,41 @@
 #include <string>
 #include <pthread.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <mutex>
 
 using namespace std;
 
 class Communicator {
 private:
-    pthread_t tid;
-public:
+    int index;
     queue<string> *message_queue;
+    mutex msg_queue_prot;
+public:
     Communicator();
-    pthread_t get_tid();
-    void set_tid();
+    ~Communicator();
+    int get_index();
+    void set_index(int index);
     void init_message_queue();
+    void enqueue_message(string msg);
+    string dequeue_message();
+    int get_queue_size();
 };
 
-pthread_t *communicators;
-Communicator *communicator_references;
+Communicator **communicators;
+pthread_t *communicator_tids;
 pthread_t printer;
 queue<int> *connection_queue;
-queue<string> **communicator_message_queues;
+
+sem_t sync_pc;
+mutex conn_queue_prot;
 
 void spawn_communicators();
 void terminate_communicators();
 void *printer_main(void *PrintingTime);
 void *communicator(void *arg);
+int get_connection();
 void print_manager_init();
 void printer_manager();
 
-#endif PRINTER_MANAGER_H
+#endif PRINTER_H

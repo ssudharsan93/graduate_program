@@ -4,7 +4,7 @@ EXECUTABLE3 = print_proj2.exe
 SERVER = server.exe
 CLIENT = client.exe
 PRINTER = printer.exe
-SOURCES = test1.cpp test2.cpp print_proj2.cpp printer_proj2.cpp server.cpp client.cpp
+SOURCES = test1.cpp test2.cpp print_proj2.cpp printer_proj2.cpp server.cpp client.cpp printer.cpp printer.h
 CXX = g++
 CFLAGS = -Wall -std=gnu++11
 OBJECT1 = test1.o
@@ -31,8 +31,8 @@ $(SERVER) : server.cpp
 $(CLIENT) : client.cpp
 	$(CXX) client.cpp -o $(CLIENT)
 
-$(PRINTER) : printer_manager.cpp
-	$(CXX) printer_manager.cpp -o $(PRINTER)
+$(PRINTER) : printer.cpp printer.h
+	$(CXX) printer.cpp -o $(PRINTER)
 
 test1.o: test1.cpp
 	$(CXX) $(CFLAGS) -c test1.cpp
