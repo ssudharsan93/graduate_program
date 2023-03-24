@@ -41,9 +41,30 @@ string Communicator::dequeue_message(){
 }
 
 int Communicator::get_queue_size(){
+
+    int Q_size;
     this->msg_queue_prot.lock();
-    return this->message_queue->size();
+    Q_size = this->message_queue->size();
     this->msg_queue_prot.unlock();
+
+    return Q_size;
+
+}
+
+void spawn_printer() {
+
+    int *PT_ptr = &PT;
+    pthread_create(&printer, NULL, printer_main, (void*) PT_ptr);
+    cout << "Printer Ready..." << endl;
+    cout << "Thread ID: " << &printer << endl;
+
+}
+
+void terminate_printer() {
+    
+    cout << "Terminating Printer.." << endl;
+    cout << "Thread ID: " << &printer << endl;
+    pthread_join(printer, NULL);
 }
 
 void spawn_communicators() {
@@ -59,11 +80,9 @@ void spawn_communicators() {
 
         communicator_tids[communicator_cntr] = new_communicator_thread;
 
-        int communicator_index = communicators[communicator_cntr]->get_index();
-
         cout << "Spawning thread.." << endl;
-        cout << "Thread: " <<  communicator_index << endl;
-        cout << "Thread ID: " << &communicator_tids[communicator_index] << endl;
+        cout << "Thread: " <<  communicator_cntr << endl;
+        cout << "Thread ID: " << &communicator_tids[communicator_cntr] << endl;
 
     }
 
@@ -87,7 +106,9 @@ void terminate_communicators() {
     
 }
 
-void *printer_main(void *PrintingTime){
+void *printer_main(void *arg){
+
+    cout << "Printing time is: " << PT << endl;
     return 0;
 }
 
@@ -100,24 +121,82 @@ void *communicator(void *arg) {
     string msg3 = "SPL,007009,msg3";
     string msg4 = "END,010006,msg4";
 
-    //sem_signal(&sync_pc);
-    //sem_wait(&sync_pc);
+    int sem_value;
+
+    /*
+       sem_getvalue() places the current value of the semaphore pointed
+       to sem into the integer pointed to by sval.
+
+       If one or more processes or threads are blocked waiting to lock
+       the semaphore with sem_wait(3), POSIX.1 permits two possibilities
+       for the value returned in sval: either 0 is returned; or a
+       negative number whose absolute value is the count of the number
+       of processes and threads currently blocked in sem_wait(3).  Linux
+       adopts the former behavior.
+    
+    */
+
+    //sem_getvalue(&sync_pc, &sem_value);
+
+    //cout << "Current sync_pc semaphore value: " << sem_value << endl;
+
+    // If printer is reading, communicators can't put new messages into their queue.
+
+    /*
+    
+       sem_wait() decrements (locks) the semaphore pointed to by sem.
+       If the semaphore's value is greater than zero, then the decrement
+       proceeds, and the function returns, immediately.  If the
+       semaphore currently has the value zero, then the call blocks
+       until either it becomes possible to perform the decrement (i.e.,
+       the semaphore value rises above zero), or a signal handler
+       interrupts the call.
+    
+    */
+
+    // if ( sem_value == 0 ) { printer process is reading...
+    //     sem_wait(&sync_pc);
+    // } // printer may be blocked 
+         // Block until messages have been enqueued.
+
     // communicator_obj->enqueue_message(msg1);
     // communicator_obj->enqueue_message(msg2);
     // communicator_obj->enqueue_message(msg3);
     // communicator_obj->enqueue_message(msg4);
-    //sem_signal(&sync_pc);
+
+    // sem_getvalue(&sync_pc, &sem_value);
+
+    /*
+    
+       sem_post() increments (unlocks) the semaphore pointed to by sem.
+       If the semaphore's value consequently becomes greater than zero,
+       then another process or thread blocked in a sem_wait(3) call will
+       be woken up and proceed to lock the semaphore.
+    
+    */
+
+    // if (sem_value == 0) { // printer is waiting...
+    //     sem_post(&sync_pc); // 
+    // } // message has been added to a message queue...
+
+    // Once communicator is done writing, if printer is waiting
+    // signal to release the printer.
+
+
+    // ##############  sporadic message writing code block  ################
 
     // while ( !TERMINATE ) {
-    //     usleep(500);
+    //     usleep( ( communicator_obj->get_index() + 1 ) * 100);
     //     communicator_obj->enqueue_message(msg1);
-    //     usleep(5000);
+    //     usleep( communicator_obj->get_index() + 1 ) * 1000);
     //     communicator_obj->enqueue_message(msg2);
-    //     usleep(500000);
+    //     usleep( communicator_obj->get_index() + 1 ) * 100000);
     //     communicator_obj->enqueue_message(msg3);
-    //     usleep(5000000);
+    //     usleep( communicator_obj->get_index() + 1 ) * 1000000);
     //     communicator_obj->enqueue_message(msg4);
     // }
+
+    // ##############  sporadic message writing code block  ################
 
     return 0;
 }
@@ -164,7 +243,7 @@ void print_manager_init() {
     //configuration parameters file read end
 
     connection_queue = new queue<int>();
-    //sem_init(&sync_pc, 0, 0);
+    sem_init(&sync_pc, 0, 1);
 
     communicators = new Communicator*[NC];
     communicator_tids = new pthread_t[NC];
@@ -174,9 +253,8 @@ void print_manager_init() {
     cout << "Connection Queue Size: " << CQS << endl;
     cout << "Message Queue Size: " << MQS << endl;
 
-    //spawn_communicators();
-
-    //pthread_create(&orinter, NULL, printer_main, (void*) PT);
+    spawn_communicators();
+    spawn_printer();
 
     return;
 
@@ -208,8 +286,9 @@ void printer_manager() {
         }
     }
 
-    //terminate_communicators();
-    
+    terminate_communicators();
+    terminate_printer();
+
     // listen()
     // conn_queue_prot.lock();
     // accept()
