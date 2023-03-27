@@ -26,6 +26,7 @@ public:
     void enqueue_message(string msg);
     string dequeue_message();
     int get_queue_size();
+    bool is_queue_empty();
 };
 
 Communicator **communicators;

@@ -51,6 +51,15 @@ int Communicator::get_queue_size(){
 
 }
 
+bool Communicator::is_queue_empty(){
+
+    bool is_empty;
+    is_empty = ( this->get_queue_size() == 0 );
+
+    return is_empty;
+
+}
+
 void spawn_printer() {
 
     int *PT_ptr = &PT;
