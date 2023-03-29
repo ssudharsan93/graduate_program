@@ -1,0 +1,42 @@
+
+
+ccount -> number of communicators currently active
+cccountprot -> semaphore to protect ccount
+pcprot -> semaphore to protect critical section (ie., access to the queues) by either printer or communicators.
+
+ccount <- 0
+
+
+communicator algorithm:
+
+wait(cccountprot);
+inspect ccount;
+if ccount> 0  // another communicator is already working, therefore no need to obtain critical   section  from printer
+  incr ccount; //to indicate that this communicator is also working
+  signal(ccountprot);
+else
+   signal(ccountprot);
+   wait(pcprot);
+   wait(cccountprot);
+   incr ccount;
+   signalccountprot);
+
+// do your thing - add one or more messages to the queue
+   
+  wait(cccountprot);
+   decr ccount;
+   inspect ccount;
+   if (ccount == 0)
+     test the value of syncpc
+     if (syncpc == 0) // no need to signal printer if there are still unread messages
+        signal(syncpc);
+     signal(pcprot);
+   signal(ccountprot);
+
+
+printer algorithm:
+  wait(syncpc);
+  wait(pcprot);
+  // do your thing
+   // check all the queues and dequeue all the messages
+  signal(pcprot);

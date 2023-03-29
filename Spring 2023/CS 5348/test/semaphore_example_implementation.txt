@@ -1,0 +1,92 @@
+
+
+Processes A B C D E F G H I 
+
+Process A must come after C
+Process B must come after D
+Process EFG can come after A or B
+Process H must come after E and F
+Process I must come after E and F
+
+Process A:    wait(syncC) A; unlock(sem1);
+Process B:    wait(syncD) B; unlock(sem1);
+Process C:    C; signal(syncC);
+Process D:    D; signal(syncD);
+Process E:    lock(sem1); unlock(sem1); E;
+Process F:    lock(sem1); unlock(sem1); F; 
+Process G:    lock(sem1); unlock(sem1); G;
+
+
+syncC = 0; syncD = 0; sem1 = 0;
+
+Process A:    wait(syncC) A; signal(sem1);
+Process B:    wait(syncD) B; signal(sem1);
+Process C:    C; signal(syncC);
+Process D:    D; signal(syncD);
+Process E:    wait(sem1); signal(sem1); E;
+Process F:    wait(sem1); signal(sem1); F; 
+Process G:    wait(sem1); signal(sem1); G;
+
+
+Process A:    wait(syncC) A; signal(semEFG);
+Process B:    wait(syncD) B; signal(semEFG);
+Process C:    C; signal(syncC);
+Process D:    D; signal(syncD);
+Process E:    wait(semEFG); E;
+Process F:    wait(semEFG); F;
+Process G:    wait(semEFG); G;
+
+
+A and B have to execute mutual exclusively
+A has to execute after C
+B has to execute after D
+E has to execute after A or B
+F has to execute after A and B
+G has to execute after A or B
+
+L1 locked L5 locked L2 unlocked 
+lock(L1); lock(L2); A; unlock(L2); unlock(L3); unlock(L4);
+lock(L5); lock(L2); B; unlock(L2); unlock(L3); unlock(L6);
+C; unlock(L1);
+D; unlock(L5);
+lock(L3); unlock(L3); E;
+lock(L4); lock(L6); F;
+lock(L3); unlock(L3); G;
+
+Communicator : Comm 
+Printer : Prnt 
+
+Printer should DQ If Communicator NQs 
+Communicator should not NQ if Printer is DQing
+Communicator should be able to concurrently NQ
+
+read_prot = 1; sync_pc = 0;
+
+Printer: 
+         wait(sync_pc); // wait for a message to exist
+         wait(guard); // tell communicators you are reading a message
+         
+         DQ; 
+         
+         signal(guard); // tell communicators you are done reading
+
+Comm:   
+        wait(comm_prot);                    // protect against other communicators
+        comm_count++;                       // increase the number of communicators
+        if (comm_count == 1) wait(guard);   // if first communicator check if printer is reading
+        signal(comm_prot);                  // release to allow other communicators through
+        
+        EQ;
+        
+        wait(comm_prot);                    // protect against other communicators
+        comm_count--;                       // decrease the number of communicators
+        if (comm_count == 0) {              // if last communicator 
+                signal(guard);              // release to allow printer to read if printer is waiting
+                if ( sync_pc == 0 ) {       // if printer read all prior messages
+                    signal(sync_pc);        // indicate to printer new messages are available
+                }
+        }
+        signal(comm_prot);                  // release to allow other communicators through
+        
+
+         
