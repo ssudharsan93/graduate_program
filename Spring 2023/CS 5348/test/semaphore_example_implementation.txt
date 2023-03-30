@@ -66,7 +66,7 @@ Printer:
          wait(sync_pc); // wait for a message to exist
          wait(guard); // tell communicators you are reading a message
          
-         DQ; 
+         DQ; // until queues are empty
          
          signal(guard); // tell communicators you are done reading
 
@@ -87,6 +87,25 @@ Comm:
                 }
         }
         signal(comm_prot);                  // release to allow other communicators through
+
+
+// listen()
+
+// signal(SIGINT, ctrl_c_signal_callback_handlr);
+
+// while ( true ) {
+//     accept(); // get socketfd; blocks until connection comes in.
+//     if ( conn_queue.size() == CQS ) { 
+//         refuse; // send(-1) ?? 
+//         continue;
+//     }
+//     else {
+//         send(1); // inform client that connection is accepted.
+//         conn_queue_prot.lock();
+//         enqueue(); // put socketfd into the queue
+//         conn_queue_prot.unlock();
+//     }
+// }
         
 
          

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <mutex>
+#include <signal.h>
 
 using namespace std;
 
@@ -35,14 +36,22 @@ pthread_t printer;
 queue<int> *connection_queue;
 
 sem_t sync_pc;
+sem_t guard;
+sem_t comm_prot;
 mutex conn_queue_prot;
+
+int comm_count;
 
 void spawn_communicators();
 void terminate_communicators();
 void *printer_main(void *PrintingTime);
 void *communicator(void *arg);
 int get_connection();
+void read_and_set_sys_params();
 void print_manager_init();
 void printer_manager();
+
+void test_NQ(Communicator *comm_obj);
+void test_DQ();
 
 #endif PRINTER_H

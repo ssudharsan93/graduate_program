@@ -15,11 +15,9 @@ if ccount> 0  // another communicator is already working, therefore no need to o
   incr ccount; //to indicate that this communicator is also working
   signal(ccountprot);
 else
-   signal(ccountprot);
-   wait(pcprot);
-   wait(cccountprot);
    incr ccount;
-   signalccountprot);
+   wait(pcprot);
+   signal(ccountprot);
 
 // do your thing - add one or more messages to the queue
    

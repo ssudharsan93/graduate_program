@@ -22,9 +22,15 @@ void Communicator::set_index(int index){
     this->index = index;
 }
 
-void Communicator::enqueue_message(string msg){ 
+void Communicator::enqueue_message(string msg){
+
+    string index = to_string(this->get_index());
+    string msg_to_be_printed = "Enqueuing in Communicator " + 
+                               index + ": " + msg + " ...\n";
+    const char* msg_to_print = msg_to_be_printed.c_str();
     
     this->msg_queue_prot.lock();
+    cout.write(msg_to_print, msg_to_be_printed.size() + 1);
     this->message_queue->push(msg);
     this->msg_queue_prot.unlock();
 }
@@ -74,9 +80,13 @@ void terminate_printer() {
     cout << "Terminating Printer.." << endl;
     cout << "Thread ID: " << &printer << endl;
     pthread_join(printer, NULL);
+
 }
 
 void spawn_communicators() {
+
+    cout << endl;
+    cout << endl;
 
     for ( int communicator_cntr = 0; communicator_cntr < NC; communicator_cntr++ ) {
         
@@ -95,9 +105,15 @@ void spawn_communicators() {
 
     }
 
+    cout << endl;
+    cout << endl;
+
 }
 
 void terminate_communicators() {
+
+    cout << endl;
+    cout << endl;
     
     for ( int communicator_cntr = 0; communicator_cntr < NC; communicator_cntr++ ) {
        
@@ -110,27 +126,86 @@ void terminate_communicators() {
     
     }
 
+    cout << endl;
+    cout << endl;
+
     delete [] communicators;
     delete [] communicator_tids;
     
 }
 
-void *printer_main(void *arg){
-
-    cout << "Printing time is: " << PT << endl;
-    return 0;
-}
-
-void *communicator(void *arg) {
-
-    Communicator *communicator_obj = (Communicator*) arg;
+void test_NQ(Communicator *comm_obj) {
 
     string msg1 = "TRM,001002,msg1";
     string msg2 = "PRT,002003,msg2";
     string msg3 = "SPL,007009,msg3";
     string msg4 = "END,010006,msg4";
 
-    int sem_value;
+    comm_obj->enqueue_message(msg1);
+    comm_obj->enqueue_message(msg2);
+    comm_obj->enqueue_message(msg3);
+    comm_obj->enqueue_message(msg4);
+
+    // ##############  sporadic message writing code block  ################
+
+    //     usleep( ( communicator_obj->get_index() + 1 ) * 100);
+    //     communicator_obj->enqueue_message(msg1);
+    //     usleep( communicator_obj->get_index() + 1 ) * 1000);
+    //     communicator_obj->enqueue_message(msg2);
+    //     usleep( communicator_obj->get_index() + 1 ) * 100000);
+    //     communicator_obj->enqueue_message(msg3);
+    //     usleep( communicator_obj->get_index() + 1 ) * 1000000);
+    //     communicator_obj->enqueue_message(msg4);
+
+    // ##############  sporadic message writing code block  ################
+        
+}
+
+void test_DQ() {
+
+    Communicator *comm_obj;
+    string msg;
+
+    for ( int communicator_cntr = 0; communicator_cntr < NC; communicator_cntr++ ) {
+
+        comm_obj = communicators[communicator_cntr];
+        if ( comm_obj->is_queue_empty() ) { continue; }
+        
+        else { 
+            cout << "Emptying Communicator: " << communicator_cntr << " ..." << endl;
+            while ( ! ( comm_obj->is_queue_empty() ) ) {
+                msg = comm_obj->dequeue_message();
+                cout << "Servicing: " << msg << " ..." << endl;
+            }
+
+        }
+
+    }
+}
+
+void *printer_main(void *arg){
+
+    sem_wait(&sync_pc); // wait for a message to exist
+    sem_wait(&guard); // tell communicators you are reading a message
+
+    cout.write("Entered printer critical section.\n", 100);
+        
+    test_DQ();
+        
+    sem_post(&guard); // tell communicators you are done reading
+
+    while ( !TERMINATE ) {
+        usleep(500000);
+    }
+    
+    return 0;
+}
+
+void *communicator(void *arg) {
+
+    Communicator *comm_obj = (Communicator*) arg;
+
+    int sync_pc_val;
 
     /*
        sem_getvalue() places the current value of the semaphore pointed
@@ -142,17 +217,7 @@ void *communicator(void *arg) {
        negative number whose absolute value is the count of the number
        of processes and threads currently blocked in sem_wait(3).  Linux
        adopts the former behavior.
-    
-    */
 
-    //sem_getvalue(&sync_pc, &sem_value);
-
-    //cout << "Current sync_pc semaphore value: " << sem_value << endl;
-
-    // If printer is reading, communicators can't put new messages into their queue.
-
-    /*
-    
        sem_wait() decrements (locks) the semaphore pointed to by sem.
        If the semaphore's value is greater than zero, then the decrement
        proceeds, and the function returns, immediately.  If the
@@ -160,52 +225,37 @@ void *communicator(void *arg) {
        until either it becomes possible to perform the decrement (i.e.,
        the semaphore value rises above zero), or a signal handler
        interrupts the call.
-    
-    */
-
-    // if ( sem_value == 0 ) { printer process is reading...
-    //     sem_wait(&sync_pc);
-    // } // printer may be blocked 
-         // Block until messages have been enqueued.
-
-    // communicator_obj->enqueue_message(msg1);
-    // communicator_obj->enqueue_message(msg2);
-    // communicator_obj->enqueue_message(msg3);
-    // communicator_obj->enqueue_message(msg4);
-
-    // sem_getvalue(&sync_pc, &sem_value);
-
-    /*
-    
+       
        sem_post() increments (unlocks) the semaphore pointed to by sem.
        If the semaphore's value consequently becomes greater than zero,
        then another process or thread blocked in a sem_wait(3) call will
        be woken up and proceed to lock the semaphore.
     
+    
     */
+ 
+    sem_wait(&comm_prot);                            // protect against other communicators
+    comm_count++;                                    // increase the number of communicators
+    if (comm_count == 1) sem_wait(&guard);           // if first communicator check if printer is reading
+    sem_post(&comm_prot);                            // release to allow other communicators through
+    
+    test_NQ(comm_obj);
 
-    // if (sem_value == 0) { // printer is waiting...
-    //     sem_post(&sync_pc); // 
-    // } // message has been added to a message queue...
+    sem_wait(&comm_prot);                             // protect against other communicators
+    comm_count--;                                    // decrease the number of communicators
+    if (comm_count == 0) {                           // if last communicator 
+            sem_post(&guard);  
+            sem_getvalue(&sync_pc, &sync_pc_val);    // release to allow printer to read if printer is waiting
+            if ( sync_pc_val == 0 ) {                // if printer read all prior messages
+                sem_post(&sync_pc);                  // indicate to printer new messages are available
+            }
+    }
+    sem_post(&comm_prot);                            // release to allow other communicators through
 
-    // Once communicator is done writing, if printer is waiting
-    // signal to release the printer.
+    while ( !TERMINATE ) {
+        usleep(500000);
+    }
 
-
-    // ##############  sporadic message writing code block  ################
-
-    // while ( !TERMINATE ) {
-    //     usleep( ( communicator_obj->get_index() + 1 ) * 100);
-    //     communicator_obj->enqueue_message(msg1);
-    //     usleep( communicator_obj->get_index() + 1 ) * 1000);
-    //     communicator_obj->enqueue_message(msg2);
-    //     usleep( communicator_obj->get_index() + 1 ) * 100000);
-    //     communicator_obj->enqueue_message(msg3);
-    //     usleep( communicator_obj->get_index() + 1 ) * 1000000);
-    //     communicator_obj->enqueue_message(msg4);
-    // }
-
-    // ##############  sporadic message writing code block  ################
 
     return 0;
 }
@@ -222,16 +272,18 @@ int get_connection() {
     return socket_fd;
 }
 
-void print_manager_init() {
+void read_and_set_sys_params() {
 
     //configuration parameters file read start
     char delim[] = " ,";
     char config_data[255];
-    
+
     ifstream config_file("config.sys");
 
     if ( !config_file.good() ) {
       cout << "Error: config.sys doesn't exist" << endl;
+      exit(-1);
+      
     }
 
     config_file.getline(config_data, 255);
@@ -251,19 +303,28 @@ void print_manager_init() {
     config_file.close();
     //configuration parameters file read end
 
-    connection_queue = new queue<int>();
-    sem_init(&sync_pc, 0, 1);
-
-    communicators = new Communicator*[NC];
-    communicator_tids = new pthread_t[NC];
-
     cout << "Printing Time: " << PT << endl;
     cout << "Number of Communicators: " << NC << endl;
     cout << "Connection Queue Size: " << CQS << endl;
     cout << "Message Queue Size: " << MQS << endl;
 
-    spawn_communicators();
-    spawn_printer();
+}
+
+void print_manager_init() {
+
+    comm_count = 0;
+
+    read_and_set_sys_params();
+
+    connection_queue = new queue<int>();
+    
+    //initialize semaphores
+    sem_init(&sync_pc, 0, 0);
+    sem_init(&guard, 0, 1);
+    sem_init(&comm_prot, 0, 1);
+
+    communicators = new Communicator*[NC];
+    communicator_tids = new pthread_t[NC];
 
     return;
 
@@ -274,6 +335,9 @@ void printer_manager() {
 
     char input;
     int cmd = -1;
+
+    spawn_communicators();
+    spawn_printer();
 
     while( !TERMINATE ) {
         usleep(10000);
@@ -298,11 +362,6 @@ void printer_manager() {
     terminate_communicators();
     terminate_printer();
 
-    // listen()
-    // conn_queue_prot.lock();
-    // accept()
-    // enqueue();
-    // conn_queue_prot.unlock();
 }
 
 // Printer Manager Methods End
