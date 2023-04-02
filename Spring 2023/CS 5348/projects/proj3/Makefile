@@ -1,6 +1,6 @@
 EXECUTABLE = computer.exe
-SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp scheduler.cpp print.cpp printer.cpp
-HEADERS = computer.h memory.h load.h shell.h cpu.h scheduler.h print.h printer.h
+SOURCES = computer.cpp memory.cpp load.cpp shell.cpp cpu.cpp scheduler.cpp print.cpp
+HEADERS = computer.h memory.h load.h shell.h cpu.h scheduler.h print.h
 CXX = g++
 CFLAGS = -pthread -g -Wall -std=gnu++11
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -30,9 +30,6 @@ scheduler.o: scheduler.cpp scheduler.h
 
 print.o: print.cpp print.h
 		$(CXX) $(CFLAGS) -c print.cpp
-
-printer.o: printer.cpp printer.h
-		$(CXX) $(CFLAGS) -c printer.cpp
 
 clean:
 	rm -f ${EXECUTABLE} $(OBJECTS)

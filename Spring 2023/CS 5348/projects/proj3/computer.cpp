@@ -13,7 +13,10 @@ mutex queue_prot;
 mutex pcb_struct_prot;
 
 int TQ;
-int PT;
+
+string COMPUTER_ID;
+string PRINTER_IP_ADDRESS;
+string PRINTER_PORT_NUMBER;
 
 bool TERMINATE;
 int PROC_SEEN_BY_COMPUTER;
@@ -72,8 +75,6 @@ void run_computer() {
     mem_size = atoi(config_arg);
     config_arg = strtok(NULL, delim);
     TQ = atoi(config_arg);
-    config_arg = strtok(NULL, delim);
-    PT = atoi(config_arg);
 
     config_file.close();
 
@@ -81,7 +82,9 @@ void run_computer() {
     cout << "Printer Port Number: " << printer_port_number << endl;
     cout << "Memory Size: " << mem_size << endl;
     cout << "Time Quantum: " << TQ << endl;
-    cout << "Printing Time: " << PT << endl;
+
+    PRINTER_IP_ADDRESS = string(printer_ip_address);
+    PRINTER_PORT_NUMBER = string(printer_port_number);
 
     mem = new Memory(mem_size);
     loader = new Loader();
@@ -93,7 +96,7 @@ void run_computer() {
     loader->load_finish(idle_prog_file);
     scheduler->process_submit(0);
 
-    print_init(PT);
+    print_init();
 
     pthread_create(&shell_thread, NULL, shell_main, (void*) shell);
 
@@ -113,7 +116,16 @@ void run_computer() {
 
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    
+    if ( argc < 2 || ( string(argv[1]).length() == 0 ) ) {
+        cout << "No Computer ID or irregular Computer ID provided" << endl;
+        exit(1);
+    }
+
+    COMPUTER_ID = string(argv[1]);
+    cout << "COMPUTER_ID is... " << COMPUTER_ID << endl;
+
     run_computer();
     return 0;
 }

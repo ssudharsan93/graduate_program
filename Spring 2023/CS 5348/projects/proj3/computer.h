@@ -33,9 +33,12 @@ extern mutex queue_prot;
 extern mutex pcb_struct_prot;
 extern mutex print_dump_prot;
 
+extern string COMPUTER_ID;
+extern string PRINTER_IP_ADDRESS;
+extern string PRINTER_PORT_NUMBER;
+
 extern bool TERMINATE;
 extern int TQ;
-extern int PT;
 extern int PROC_SEEN_BY_COMPUTER;
 
 Memory* returnMemory();

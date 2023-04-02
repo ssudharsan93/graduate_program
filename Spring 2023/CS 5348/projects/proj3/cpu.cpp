@@ -73,7 +73,7 @@ bool CPU::cpu_execute_instruction(){
             scheduler = returnScheduler();
             process_id = scheduler->get_current_proc()->get_PID();
             
-            to_be_printed = "AC : " + to_string(AC);
+            to_be_printed = "AC:" + to_string(AC);
             
             buffer = new char[to_be_printed.size() + 1];
             strcpy(buffer, to_be_printed.c_str());

@@ -34,6 +34,7 @@ int full_queue_select = 0;
 
 map<string, FILE*> *file_desc_struct;
 
+string SERVER_PORT_NUMBER;
 int SERVER_FD;
 int PT;
 int NC;
@@ -704,10 +705,6 @@ void *communicator(void *arg) {
         terminate_conn_received = false;
     }
 
-    // while ( !TERMINATE ) {
-    //     usleep(500000);
-    // }
-
     return 0;
 }
 
@@ -946,14 +943,14 @@ int set_up_printer_socket() {
         perror("Error socket: ");
     }
 
-    int port = 8140;
+    int server_port_number = stoi(SERVER_PORT_NUMBER);
 
     struct sockaddr_in server_addr;
 
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(port);
+    server_addr.sin_port = htons(server_port_number);
 
     int bind_ret = bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if ( bind_ret < 0 ) {
@@ -979,11 +976,12 @@ void read_and_set_sys_params() {
     }
 
     config_file.getline(config_data, 255);
-    char *config_arg = strtok(config_data, delim); 
-    config_arg = strtok(NULL, delim); // discarding IP address
-    config_arg = strtok(NULL, delim); // discarding port number
+    char *config_arg = strtok(config_data, delim); // discarding IP address
+    config_arg = strtok(NULL, delim); // getting port number
+    SERVER_PORT_NUMBER = string(config_arg);
     config_arg = strtok(NULL, delim); // discarding M ( memory size )
     config_arg = strtok(NULL, delim); // discarding TQ ( Time Quantum )
+    config_arg = strtok(NULL, delim); // getting PT ( Printing Time )
     PT = atoi(config_arg);
     config_arg = strtok(NULL, delim); 
     NC = atoi(config_arg);
@@ -995,6 +993,7 @@ void read_and_set_sys_params() {
     config_file.close();
     //configuration parameters file read end
 
+    cout << "Server Port Number: " << SERVER_PORT_NUMBER << endl;
     cout << "Printing Time: " << PT << endl;
     cout << "Number of Communicators: " << NC << endl;
     cout << "Connection Queue Size: " << CQS << endl;
