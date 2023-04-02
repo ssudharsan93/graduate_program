@@ -69,13 +69,13 @@ void terminate_printer();
 void spawn_communicators();
 void terminate_communicators();
 
-
 // Main Thread Methods
 void *printer_main(void *PrintingTime);
 void *communicator(void *arg);
-
-// System methods
 int get_connection();
+
+// Printer Manager methods
+void place_connection();
 void read_and_set_sys_params();
 void ctrl_c_signal_callback_handlr(int signum);
 void print_manager_init();

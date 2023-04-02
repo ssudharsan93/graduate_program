@@ -438,10 +438,12 @@ int service_printer_cmd(string msg, map<string, FILE*> *file_desc_struct) {
 
 bool is_bit_set(int bin_number, int bit_index) {
     bool bit_is_set = ( bin_number >> bit_index & 1 ) == 1 ? true : false;
-    
-    cout << endl;
-    cout << "\t\tIs Bit Number " << bit_index << " for number: ";
-    cout << bin_number << " set? : " << bit_is_set << endl;
+
+    if ( DEBUG_flag ) {
+        cout << endl;
+        cout << "\t\tIs Bit Number " << bit_index << " for number: ";
+        cout << bin_number << " set? : " << bit_is_set << endl;
+    }
     
     return bit_is_set;
 }
@@ -619,32 +621,49 @@ void *communicator(void *arg) {
     string CMDs[] = {"SPL", "PRT", "END", "TRM"};
     string values[] = {"AC:20", "AC:5000", "AC:89000"};
     int msg_count_per_computer = 6;
+    int num_of_computers_serviced = 0;
 
-    string msg1 = "SPL," + to_string(comm_obj->get_index()) + ".1,###";
-    string msg2 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[0];
-    string msg3 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[1];
-    string msg4 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[2];
-    string msg5 = "END," + to_string(comm_obj->get_index()) + ".1,###";
-    string msg6 = "TRM," + to_string(comm_obj->get_index()) + ".1,###";
+    while (! TERMINATE ) {
+        cout << "Communicator: " << comm_obj->get_index()<< " is waiting for a connection..." << endl;
+        string CID = to_string(get_connection());
+        cout << "Communicator is acquiring connection..." << endl;
 
-    // ##############  sporadic message writing code block  ################
-    usleep( ( comm_obj->get_index() + 1 ) * 10);
-    communicator_critical_section(comm_obj, msg1);
-    usleep( ( comm_obj->get_index() + 1 ) * 100);
-    communicator_critical_section(comm_obj, msg2);
-    usleep( ( comm_obj->get_index() + 1 ) * 10000);
-    communicator_critical_section(comm_obj, msg3);
-    usleep( ( comm_obj->get_index() + 1 ) * 100000);
-    communicator_critical_section(comm_obj, msg4);
-    usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-    communicator_critical_section(comm_obj, msg5);
-    usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-    communicator_critical_section(comm_obj, msg6);
-    // ##############  sporadic message writing code block  ################
+        string msg1 = "SPL," + CID + ".1,###";
+        string msg2 = "PRT," + CID + ".1," + values[0];
+        string msg3 = "PRT," + CID + ".1," + values[1];
+        string msg4 = "PRT," + CID + ".1," + values[2];
+        string msg5 = "END," + CID + ".1,###";
+        string msg6 = "TRM," + CID + ".1,###";
 
-    while ( !TERMINATE ) {
-        usleep(500000);
+        // string msg1 = "SPL," + to_string(comm_obj->get_index()) + ".1,###";
+        // string msg2 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[0];
+        // string msg3 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[1];
+        // string msg4 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[2];
+        // string msg5 = "END," + to_string(comm_obj->get_index()) + ".1,###";
+        // string msg6 = "TRM," + to_string(comm_obj->get_index()) + ".1,###";
+
+        // ##############  sporadic message writing code block  ################
+        usleep( ( comm_obj->get_index() + 1 ) * 10);
+        communicator_critical_section(comm_obj, msg1);
+        usleep( ( comm_obj->get_index() + 1 ) * 100);
+        communicator_critical_section(comm_obj, msg2);
+        usleep( ( comm_obj->get_index() + 1 ) * 10000);
+        communicator_critical_section(comm_obj, msg3);
+        usleep( ( comm_obj->get_index() + 1 ) * 100000);
+        communicator_critical_section(comm_obj, msg4);
+        usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+        communicator_critical_section(comm_obj, msg5);
+        usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+        communicator_critical_section(comm_obj, msg6);
+        // ##############  sporadic message writing code block  ################
+
+        //num_of_computers_serviced = num_of_computers_serviced + 1;
+
     }
+
+    // while ( !TERMINATE ) {
+    //     usleep(500000);
+    // }
 
     return 0;
 }
@@ -671,14 +690,18 @@ int get_connection() {
 
 // ############## PRINTER MANAGER METHODS START ############### 
 
-int place_connection(int socket) {
+void place_connection(int socket) {
 
     int sem_wait_ret_code;
     int sem_post_ret_code;
     int sem_getval_ret_code;
     
+    cout << "Printer Manager is attempting to place a connection..." << endl;
+    
     sem_wait_ret_code = sem_wait(conn_queue_full);
     sem_wait_ret_code = sem_wait(conn_queue_guard);
+
+    cout << "Printer Manager is placing a connection..." << endl;
 
     connection_queue->push(socket);
 
@@ -895,9 +918,17 @@ void printer_manager() {
     spawn_communicators();
     spawn_printer();
 
+    usleep(100000);
+    place_connection(1);
+    place_connection(2);
+    place_connection(3);
+    place_connection(4);
+    place_connection(5);
+    place_connection(6);
+
     while( !TERMINATE ) {
-        //get_connection();
         usleep(100000);
+        //get_connection();
 
         //cout << "Terminate System? Type in 1 if Yes. > ";
         

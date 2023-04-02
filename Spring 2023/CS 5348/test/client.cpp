@@ -30,17 +30,17 @@ int main() {
     inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
     server_addr.sin_port = htons(port);
 
-    struct timeval timeout;
-    timeout.tv_sec = 10; // set timeout to 5 seconds
-    timeout.tv_usec = 0;
+    // struct timeval timeout;
+    // timeout.tv_sec = 10; // set timeout to 5 seconds
+    // timeout.tv_usec = 0;
 
 
-    int sock_opt_ret = setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-    cout << "Sock Option Return Code: " << sock_opt_ret << endl;
-    if(sock_opt_ret < 0) {
-        perror("Error setting socket option");
-        exit(EXIT_FAILURE);
-    }
+    // int sock_opt_ret = setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+    // cout << "Sock Option Return Code: " << sock_opt_ret << endl;
+    // if(sock_opt_ret < 0) {
+    //     perror("Error setting socket option");
+    //     exit(EXIT_FAILURE);
+    // }
 
 
     int connect_ret = connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
