@@ -62,28 +62,44 @@ Communicator should be able to concurrently NQ
 
 read_prot = 1; sync_pc = 0;
 
+NC;   // number of communicators
+CQS;  // connection queue size
+MQS;  // message queue size
+
+3 * 5 = 15
+max value sync_pc = 15;
+
 Printer: 
-         wait(sync_pc); // wait for a message to exist
+         wait(sync_pc); // wait for a message to exist; sync_pc = how many total messages exist in all queues
          wait(guard); // tell communicators you are reading a message
          
          DQ; // until queues are empty
          
          signal(guard); // tell communicators you are done reading
 
+         //service the msg
+
 Comm:   
+        recv;
+
+        if ( comm->queue_size() == MQS ) {
+                sleep(5000);
+                continue;
+        }
+        
         wait(comm_prot);                    // protect against other communicators
         comm_count++;                       // increase the number of communicators
         if (comm_count == 1) wait(guard);   // if first communicator check if printer is reading
         signal(comm_prot);                  // release to allow other communicators through
         
-        EQ;
+        NQ; // NQ;
         
         wait(comm_prot);                    // protect against other communicators
         comm_count--;                       // decrease the number of communicators
         if (comm_count == 0) {              // if last communicator 
                 signal(guard);              // release to allow printer to read if printer is waiting
                 if ( sync_pc == 0 ) {       // if printer read all prior messages
-                    signal(sync_pc);        // indicate to printer new messages are available
+                    signal(sync_pc);        // indicate exists a non-empty queue
                 }
         }
         signal(comm_prot);                  // release to allow other communicators through

@@ -1,10 +1,44 @@
 #include "printer.h"
 
+/*
+    sem_getvalue() places the current value of the semaphore pointed
+    to sem into the integer pointed to by sval.
+
+    sem_wait() decrements (locks) the semaphore pointed to by sem.
+    If the semaphore's value is greater than zero, then the decrement
+    proceeds, and the function returns, immediately.  If the
+    semaphore currently has the value zero, then the call blocks
+    until it becomes possible to perform the decrement. .
+    
+    sem_post() increments (unlocks) the semaphore pointed to by sem.
+    If the semaphore's value consequently becomes greater than zero,
+    then another process or thread blocked in a sem_wait(3) call will
+    be woken up and proceed to lock the semaphore.
+*/
+
+sem_t *conn_queue_guard;
+sem_t *conn_queue_full;
+sem_t *conn_queue_empty;
+
+sem_t *sync_pc;
+sem_t *comm_printer_guard;
+sem_t *comm_prot;
+
+Communicator **communicators;
+pthread_t *communicator_tids;
+pthread_t printer;
+queue<int> *connection_queue;
+
+int comm_count;
+
+int full_queue_select = 0;
+
 int PT;
 int NC;
 int CQS;
 int MQS;
 bool TERMINATE = false;
+bool DEBUG_flag = true;
 
 Communicator::Communicator() {
     this->message_queue = new queue<string>();
@@ -22,16 +56,28 @@ void Communicator::set_index(int index){
     this->index = index;
 }
 
+int Communicator::get_bin_selector(){
+    return this->bin_selector;
+}
+
+void Communicator::set_bin_selector(int bin_selector){
+    this->bin_selector = bin_selector;
+}
+
 void Communicator::enqueue_message(string msg){
 
+    this->msg_queue_prot.lock();
+
     string index = to_string(this->get_index());
-    string msg_to_be_printed = "Enqueuing in Communicator " + 
-                               index + ": " + msg + " ...\n";
+    string msg_to_be_printed = "\t\t\tEnqueuing in Communicator " + 
+                               index + ": \t\t------>\t\t" + msg + "\n";
     const char* msg_to_print = msg_to_be_printed.c_str();
     
-    this->msg_queue_prot.lock();
     cout.write(msg_to_print, msg_to_be_printed.size() + 1);
+    cout.flush();
+
     this->message_queue->push(msg);
+    
     this->msg_queue_prot.unlock();
 }
 
@@ -43,7 +89,6 @@ string Communicator::dequeue_message(){
     this->msg_queue_prot.unlock();
     
     return msg;
-
 }
 
 int Communicator::get_queue_size(){
@@ -54,7 +99,6 @@ int Communicator::get_queue_size(){
     this->msg_queue_prot.unlock();
 
     return Q_size;
-
 }
 
 bool Communicator::is_queue_empty(){
@@ -63,7 +107,618 @@ bool Communicator::is_queue_empty(){
     is_empty = ( this->get_queue_size() == 0 );
 
     return is_empty;
+}
 
+// ############## PRINTER METHODS START ###############
+void send_response(string response) {
+    
+    char resp[response.size() + 1];
+    strcpy(resp, response.c_str());
+    
+}
+
+void print_spool_to_printout(string CID, string PID, string footer, map<string, FILE*> *file_desc_struct){
+
+    string print_out_file_index = CID + ".XXX";
+    string spool_file_index = CID + "." + PID;
+
+    FILE* spool_fp = file_desc_struct->at(spool_file_index);
+    FILE* printer_fp = file_desc_struct->at(print_out_file_index);
+
+    char line[100];
+
+    fseek(spool_fp, 0, SEEK_SET);
+
+    while ( fgets(line, sizeof(line), spool_fp) ){
+        usleep(PT);
+        fputs(line, printer_fp);
+    }
+
+    string separator =    "--------------------\n";
+    string process_footer = separator + footer + separator;
+
+    char close_msg[process_footer.size() + 1];
+    strcpy(close_msg, process_footer.c_str());
+    usleep(PT);
+    fputs(close_msg, printer_fp);
+
+    fclose(spool_fp);
+
+    string fname;
+    string CID_PID = CID + "_" + PID;
+    string file_footer = "_spool.txt";
+
+    fname = CID_PID + file_footer;
+
+    char spool_fname[fname.size() + 1];
+    strcpy(spool_fname, fname.c_str());
+
+    cout << "Removing " << fname << "..." << endl;
+
+    remove(spool_fname);
+
+}
+
+//Initialize the printer, including opening the simulated printing paper, i.e., the “printer.out” file.
+//Sends an ACK to the print component to indicate that the initialization is done.
+void printer_init(string CID, map<string, FILE*> *file_desc_struct) {
+
+    FILE *fp = NULL;
+
+    string print_out_file_index = CID + ".XXX";
+
+    string fname = CID + "_printer.out";
+    cout << "Creating: " << fname << endl;
+
+    char print_out_fname[fname.size() + 1];
+    strcpy(print_out_fname, fname.c_str());
+
+    auto file_desc_struct_it = file_desc_struct->find(print_out_file_index);
+    
+    if ( file_desc_struct_it == file_desc_struct->end() ) {
+
+        fp = fopen(print_out_fname, "w");
+        pair<string, FILE*> pid_file_desc_pair = make_pair(print_out_file_index, fp);
+        file_desc_struct->insert(pid_file_desc_pair);
+    
+    } else { 
+        cout << "printer.out file already exists for Computer: " << CID << endl;
+        return; 
+    }
+
+}
+
+//Opening a spool file for the process.
+//You can use PID to differentiate the spool file names.
+void printer_init_spool(string CID, string PID, map<string, FILE*> *file_desc_struct){
+
+    FILE *fp = NULL;
+    
+    string spool_file_index = CID + "." + PID;
+
+    string footer = "_spool.txt";
+
+    string fname = CID + "_" + PID + footer;
+    cout << "Creating: " << fname << endl;
+
+    char spool_fname[fname.size() + 1];
+    strcpy(spool_fname, fname.c_str());
+
+    auto file_desc_struct_it = file_desc_struct->find(spool_file_index);
+        
+    if ( file_desc_struct_it == file_desc_struct->end() ) {
+        
+        fp = fopen(spool_fname, "w+");
+
+        pair<string, FILE*> pid_file_desc_pair = make_pair(spool_file_index, fp);
+        file_desc_struct->insert(pid_file_desc_pair);
+
+        string separator =    "--------------------\n";
+        string process_str =  "     Computer: " + CID + " Process: " + PID + "\n";
+        string process_header = separator + process_str + separator;
+        char init_msg[process_header.size() + 1];
+        strcpy(init_msg, process_header.c_str());
+
+        fputs(init_msg, fp);
+    
+    } 
+
+    else {
+        cout << "Spool file already exists for Computer: " << CID << " PID: " << PID << endl;
+        return; 
+    }
+
+}
+
+//The printer prints the contents in the spool file of the process to the simulated paper and close the spool file.
+void printer_end_spool(string CID, string PID, map<string, FILE*> *file_desc_struct){
+    
+    cout << "End Spool Start" << endl;
+
+    string footer =  "     End Computer: " + CID + " Process: " + PID + "\n";
+    print_spool_to_printout(CID, PID, footer, file_desc_struct);
+
+    string spool_file_index = CID + "." + PID;
+
+    file_desc_struct->erase(spool_file_index);
+
+    return;
+
+}
+
+void printer_dump_spool(map<int, FILE*> *file_desc_struct){
+    
+    auto f_desc_struct_begin = file_desc_struct->begin();
+    auto f_desc_struct_end = file_desc_struct->end();
+    int PID;
+
+    cout << "===========================" << endl;
+    cout << "      Printer Dump         " << endl;
+    cout << "===========================" << endl;
+    cout << "Index: CID_PID" << endl;
+
+    int index = 0;
+
+    for ( auto f_desc_struct_it = f_desc_struct_begin; f_desc_struct_it != f_desc_struct_end; ++f_desc_struct_it ) {
+        PID = f_desc_struct_it->first;
+        cout << index << ":" << PID << endl;
+    }
+
+}
+
+//This function is for handling the regular print instructions.
+//It should determine which spool file to use and writes the to-be-printed content to the spool file.
+void printer_print(string CID, string PID, string buffer, map<string, FILE*> *file_desc_struct){
+
+    string spool_file_index = CID + "." + PID;
+    FILE *spool_fp = file_desc_struct->at(spool_file_index);
+
+    char buffer_to_be_written[buffer.size() + 1];
+    strcpy(buffer_to_be_written, buffer.c_str());
+
+    fputs(buffer_to_be_written, spool_fp);
+    fputs("\n", spool_fp);
+
+    return;
+
+}
+
+//For any process that has not terminated, print its partial output in its spool file
+//to the simulated paper, and add a message at the end to indicate that the process did
+//not finish yet. Then, clean up and terminate the printer process.
+void printer_terminate(map<string, FILE*> *file_desc_struct, FILE *printer_fp){
+    
+    auto f_desc_struct_begin = file_desc_struct->begin();
+    auto f_desc_struct_end = file_desc_struct->end();
+    string CID_PID;
+    FILE *spool_fp;
+
+    for ( auto f_desc_struct_it = f_desc_struct_begin; f_desc_struct_it != f_desc_struct_end; ++f_desc_struct_it ) {
+        CID_PID = f_desc_struct_it->first;
+        spool_fp = f_desc_struct_it->second;
+
+        char CID_PID_str[CID_PID.size() + 1];
+        strcpy(CID_PID_str, CID_PID.c_str());
+        char CID_PID_delim[] = ".";
+
+        char *id_param = strtok(CID_PID_str, CID_PID_delim);
+        string CID(id_param);
+        id_param = strtok(NULL, CID_PID_delim);
+        string PID(id_param);
+
+        string footer =  "     Computer: " + CID + " Process: " + PID + " Terminated without Completion.\n";
+        //print_spool_to_printout(CID, PID, footer, );
+    }
+
+    //fclose(printer_out_fp);
+
+
+}
+
+void exec_printer_cmd(string cmd, string CID_PID, string data, map<string, FILE*> *file_desc_struct){
+
+    //SPL is SPOOL INIT
+    //END is SPOOL END
+    //PRT is PRINT
+    //TRM is TERMINATE
+
+    char CID_PID_str[CID_PID.size() + 1];
+    strcpy(CID_PID_str, CID_PID.c_str());
+    char CID_PID_delim[] = ".";
+
+    string SPL = "SPL";
+    string END = "END";
+    string PRT = "PRT";
+    string DMP = "DMP";
+    string TRM = "TRM";
+
+    char *id_param = strtok(CID_PID_str, CID_PID_delim);
+    string CID(id_param);
+    id_param = strtok(NULL, CID_PID_delim);
+    string PID(id_param);
+
+    cout << "\t\t\tCommand:                 \t\t\t\t" << cmd << " ..." << endl;
+    cout << "\t\t\tCID    :                 \t\t\t\t" << CID << " ..." << endl;
+    cout << "\t\t\tPID    :                 \t\t\t\t" << PID << " ..." << endl;
+    cout << "\t\t\tData   :                 \t\t\t\t" << data << " ..." << endl;
+
+    if ( cmd.compare(SPL) == 0 ) {
+        cout << "\t\t\tSpooling...                 \t\t\t\t" << CID_PID << endl;
+        printer_init(CID, file_desc_struct);
+        printer_init_spool(CID, PID, file_desc_struct);
+    } 
+    
+    else if ( cmd.compare(END) == 0 ) {
+        cout << "\t\t\tEnding...                 \t\t\t\t" << CID_PID << endl;
+        // fp = file_desc_struct->at(PID);
+        // printer_end_spool(PID, fp, printer_out_fp);
+        // file_desc_struct->erase(PID);
+
+    } 
+    
+    else if ( cmd.compare(PRT) == 0 ) {
+        cout << "\t\t\tPrinting...                 \t\t\t\t" << CID_PID << endl;
+
+        // message = strtok(NULL, delim);
+        // cout << message << endl;
+        // fp = file_desc_struct->at(PID);
+        // printer_print(message, fp);
+    } 
+
+    else if ( cmd.compare(DMP) == 0 ) {
+        cout << "\t\t\tDumping...                 \t\t\t\t" << CID_PID << endl;
+
+        // printer_dump_spool(file_desc_struct);
+    }
+    
+    else if ( cmd.compare(TRM) == 0 ) {
+        cout << "\t\t\tTerminating...                 \t\t\t\t" << CID_PID << endl;
+        // printer_terminate(file_desc_struct, printer_out_fp);
+        // fclose(printer_out_fp);
+    } 
+
+    else {
+        cout << "Unknown CMD";
+    }
+
+    return;
+
+}
+
+void service_printer_cmd(string msg) {
+
+    char rcvd_msg[msg.size() + 1];
+    strcpy(rcvd_msg, msg.c_str());
+
+    char *message;
+    int PID;
+
+    FILE *fp = NULL;
+    FILE *printer_out_fp = NULL;
+
+    map<string, FILE*> *file_desc_struct = new map<string, FILE*>();
+
+    char delim[] = ",";
+            
+    message = strtok(rcvd_msg, delim);
+    string command(message);
+    message = strtok(NULL, delim);
+    string CID_PID(message);
+    message = strtok(NULL, delim);
+    string data(message);
+
+    exec_printer_cmd(command, CID_PID, data, file_desc_struct);
+}
+
+// ############## PRINTER METHODS END ###############
+
+// ############## THREAD METHODS START ###############
+
+bool is_bit_set(int bin_number, int bit_index) {
+    bool bit_is_set = ( bin_number >> bit_index & 1 ) == 1 ? true : false;
+    
+    cout << endl;
+    cout << "\t\tIs Bit Number " << bit_index << " for number: ";
+    cout << bin_number << " set? : " << bit_is_set << endl;
+    
+    return bit_is_set;
+}
+
+int clear_bit(int bin_number, int bit_index) {
+
+    if ( DEBUG_flag ) {
+        cout << endl;
+        cout << "\t\tNumber before bit " << bit_index << " was cleared: " << bin_number << endl;
+    }
+    
+    int mask = 1 << bit_index;       // shift the 1 left until the bit to be cleared is reached.
+    bin_number = bin_number & ~mask; // do bitwise negation so there are 1s in every other place
+                                     // and a 0 in the bit to be cleared.
+    
+    if ( DEBUG_flag ) {
+        cout << "\t\tNumber after bit " << bit_index << " was cleared: " << bin_number << endl;
+        cout << endl;
+    }
+
+    return bin_number;
+}
+int set_bit(int bin_number, int bit_index) {
+
+    if ( DEBUG_flag ) {
+        cout << endl;
+        cout << "\t\tNumber before bit " << bit_index << " was set: " << bin_number << endl;
+    }
+
+    int mask = 1 << bit_index;
+    bin_number = bin_number | mask;
+
+    if ( DEBUG_flag ){
+        cout << "\t\tNumber after bit " << bit_index << " was set: " << bin_number << endl;
+        cout << endl;
+    }
+
+    return bin_number;
+}
+
+void test_NQ(Communicator *comm_obj, string msg) {
+
+    int sem_wait_ret_code;
+    int sem_post_ret_code;
+    int sem_getval_ret_code;
+    int sync_pc_val;
+
+    sem_wait_ret_code = sem_wait(comm_prot);           // protect against other communicators
+
+    comm_count++;                  // increase the number of communicators
+    if (comm_count == 1) {
+        sem_wait_ret_code = sem_wait(comm_printer_guard);
+    }                              // if first communicator check if printer is reading
+    sem_post_ret_code = sem_post(comm_prot);           // release to allow other communicators through
+
+    if ( DEBUG_flag ) {
+        cout << endl;
+        cout << "##########\t\tIn Communicator Critical Section.\t\t##########" << endl;
+        cout << endl;
+    }
+
+    comm_obj->enqueue_message(msg);
+
+    sem_wait_ret_code = sem_wait(comm_prot);             // protect against other communicators
+    comm_count--;                                        // decrease the number of communicators
+
+    if ( ( ( full_queue_select >> comm_obj->get_index() ) & 1 ) == 0 ) {
+       sem_post_ret_code = sem_post(sync_pc);
+    }
+    
+    full_queue_select = set_bit(full_queue_select, comm_obj->get_index());
+
+    if (comm_count == 0) {                           // if last communicator 
+        sem_post_ret_code = sem_post(comm_printer_guard);
+    }
+    sem_post_ret_code = sem_post(comm_prot);         // release to allow other communicators through
+        
+}
+
+void test_DQ() {
+
+    if ( DEBUG_flag ) {
+        cout << endl;
+        cout << "#####################################################" << endl;
+        cout << "          In Printer Critical Section.               " << endl;
+        cout << "#####################################################" << endl;
+        cout << endl;
+    }
+    
+    Communicator *comm_obj;
+    string msg;
+
+    for ( int communicator_cntr = 0; communicator_cntr < NC; communicator_cntr++ ) {
+        comm_obj = communicators[communicator_cntr];
+
+        if ( ! ( is_bit_set(full_queue_select, comm_obj->get_index()) ) ) {
+            cout << "\t\tQueue " << comm_obj->get_index() << " is empty. Queue Selector: " << full_queue_select << endl;
+            continue;
+        } 
+        
+        else { 
+            cout << "\t\tEmptying Communicator: " << communicator_cntr << " ..." << endl;
+            while ( ! ( comm_obj->is_queue_empty() ) ) {
+                msg = comm_obj->dequeue_message();
+                cout << endl;
+                cout << "\t\t\tServicing:                 \t\t------>\t\t" << msg << " ..." << endl;
+                service_printer_cmd(msg);
+            }
+            
+            full_queue_select = clear_bit(full_queue_select, comm_obj->get_index());
+            break;
+        }
+    }
+
+}
+
+void *printer_main(void *arg){
+
+    int sem_wait_ret_code;
+    int sem_post_ret_code;
+    int sem_getval_ret_code;
+    int sync_pc_val;
+
+
+    while ( !TERMINATE ) {
+        usleep(5000);
+
+        sem_wait_ret_code = sem_wait(sync_pc); // wait for a message to exist
+        
+        if ( sem_wait_ret_code == -1 ) {
+            cout << "Error with sync_pc has occurred.";
+
+            if (errno == EINTR) {
+                cout << "EINTR error" << endl;
+            } else if (errno == EINVAL) {
+                cout << "EINVAL error" << endl;
+            } else { 
+                cout << "Another error occurred: " << errno << endl;
+            }
+        }
+
+        sem_wait_ret_code = sem_wait(comm_printer_guard); // tell communicators you are reading a message
+        if ( sem_wait_ret_code == -1 ) {
+            cout << "Error with guard has occurred.";
+            if (errno == EINTR) {
+                cout << "EINTR error" << endl;
+            } else if (errno == EINVAL) {
+                cout << "EINVAL error" << endl;
+            } else { 
+                cout << "Another error occurred: " << errno << endl;
+            }
+        }
+
+        test_DQ();
+        
+        sem_post_ret_code = sem_post(comm_printer_guard); // tell communicators you are done reading    
+    }
+    
+    return 0;
+}
+
+void *communicator(void *arg) {
+
+    Communicator *comm_obj = (Communicator*) arg;
+
+    int sleeps[] = {10, 100, 1000, 10000, 100000};
+    string delim = ",";
+    string PIDs[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
+    string CMDs[] = {"SPL", "PRT", "END", "TRM"};
+    string values[] = {"AC:20", "AC:5000", "AC:89000"};
+    int msg_count_per_computer = 6;
+
+    string msg1 = "SPL," + to_string(comm_obj->get_index()) + ".1,###";
+    string msg2 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[0];
+    string msg3 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[1];
+    string msg4 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[2];
+    string msg5 = "END," + to_string(comm_obj->get_index()) + ".1,###";
+    string msg6 = "TRM," + to_string(comm_obj->get_index()) + ".1,###";
+
+    // ##############  sporadic message writing code block  ################
+    usleep( ( comm_obj->get_index() + 1 ) * 10);
+    test_NQ(comm_obj, msg1);
+    usleep( ( comm_obj->get_index() + 1 ) * 100);
+    test_NQ(comm_obj, msg2);
+    usleep( ( comm_obj->get_index() + 1 ) * 10000);
+    test_NQ(comm_obj, msg3);
+    usleep( ( comm_obj->get_index() + 1 ) * 100000);
+    test_NQ(comm_obj, msg4);
+    usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+    test_NQ(comm_obj, msg5);
+    usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+    test_NQ(comm_obj, msg6);
+    // ##############  sporadic message writing code block  ################
+
+    while ( !TERMINATE ) {
+        usleep(500000);
+    }
+
+    return 0;
+}
+
+int get_connection() {
+
+    int sem_wait_ret_code;
+    int sem_post_ret_code;
+    int sem_getval_ret_code;
+
+    sem_wait_ret_code = sem_wait(conn_queue_empty);
+    sem_wait_ret_code = sem_wait(conn_queue_guard);
+
+    int socket_fd = connection_queue->front();
+    connection_queue->pop();
+    
+    sem_post_ret_code = sem_post(conn_queue_full);
+    sem_post_ret_code = sem_post(conn_queue_guard);
+
+    return socket_fd;
+}
+
+// ############## THREAD METHODS END ###############
+
+// ############## PRINTER MANAGER METHODS START ############### 
+
+int place_connection(int socket) {
+
+    int sem_wait_ret_code;
+    int sem_post_ret_code;
+    int sem_getval_ret_code;
+    
+    sem_wait_ret_code = sem_wait(conn_queue_full);
+    sem_wait_ret_code = sem_wait(conn_queue_guard);
+
+    connection_queue->push(socket);
+
+    sem_post_ret_code = sem_post(conn_queue_empty);
+    sem_post_ret_code = sem_post(conn_queue_guard);
+
+}
+
+void initialize_semaphores() {
+
+    conn_queue_guard = sem_open("/proj3_conn_queue_guard", O_CREAT, 0666, 1); 
+    
+    if (conn_queue_guard == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+
+    conn_queue_empty = sem_open("/proj3_conn_queue_empty", O_CREAT, 0666, 0); 
+    
+    if (conn_queue_empty == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+
+    conn_queue_full = sem_open("/proj3_conn_queue_full", O_CREAT, 0666, CQS); 
+    
+    if (conn_queue_full == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+
+    sync_pc = sem_open("/proj3_sync_pc", O_CREAT, 0666, 1);
+    
+    if (sync_pc == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+    
+    comm_printer_guard = sem_open("/proj3_comm_printer_guard", O_CREAT, 0666, 1);
+    
+    if (comm_printer_guard == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    }
+    comm_prot = sem_open("/proj3_comm_prot", O_CREAT, 0666, 1); 
+    
+    if (comm_prot == SEM_FAILED) {
+        perror("sem_open");
+        exit(1);
+    } 
+}
+
+void close_semaphores() {
+    sem_close(conn_queue_guard);
+    sem_close(conn_queue_empty);
+    sem_close(conn_queue_full);
+
+    sem_close(sync_pc);
+    sem_close(comm_printer_guard);
+    sem_close(comm_prot);
+
+    sem_unlink("/proj3_conn_queue_guard");
+    sem_unlink("/proj3_conn_queue_empty");
+    sem_unlink("/proj3_conn_queue_full");
+
+    sem_unlink("/proj3_sync_pc");
+    sem_unlink("/proj3_comm_printer_guard");
+    sem_unlink("/proj3_comm_prot");
 }
 
 void spawn_printer() {
@@ -79,7 +734,8 @@ void terminate_printer() {
     
     cout << "Terminating Printer.." << endl;
     cout << "Thread ID: " << &printer << endl;
-    pthread_join(printer, NULL);
+    //pthread_join(printer, NULL);
+    pthread_cancel(printer);
 
 }
 
@@ -98,10 +754,8 @@ void spawn_communicators() {
         pthread_create(&new_communicator_thread, NULL, communicator, (void*) new_communicator);
 
         communicator_tids[communicator_cntr] = new_communicator_thread;
-
-        cout << "Spawning thread.." << endl;
-        cout << "Thread: " <<  communicator_cntr << endl;
-        cout << "Thread ID: " << &communicator_tids[communicator_cntr] << endl;
+        string thread_msg = "Spawning Communicator Thread: " + to_string(communicator_cntr) + " ...\n";
+        cout.write( thread_msg.c_str(), thread_msg.size() + 1 );
 
     }
 
@@ -122,7 +776,8 @@ void terminate_communicators() {
         cout << "Terminating thread.." << endl;
         cout << "Thread: " << communicators[communicator_cntr]->get_index() << endl;
         cout << "Thread ID: " << &communicator_tids[communicator_cntr] << endl;
-        pthread_join(communicator_tids[communicator_cntr], NULL);
+        //pthread_join(communicator_tids[communicator_cntr], NULL);
+        pthread_cancel(communicator_tids[communicator_cntr]);
     
     }
 
@@ -134,156 +789,18 @@ void terminate_communicators() {
     
 }
 
-void test_NQ(Communicator *comm_obj) {
-
-    string msg1 = "TRM,001002,msg1";
-    string msg2 = "PRT,002003,msg2";
-    string msg3 = "SPL,007009,msg3";
-    string msg4 = "END,010006,msg4";
-
-    comm_obj->enqueue_message(msg1);
-    comm_obj->enqueue_message(msg2);
-    comm_obj->enqueue_message(msg3);
-    comm_obj->enqueue_message(msg4);
-
-    // ##############  sporadic message writing code block  ################
-
-    //     usleep( ( communicator_obj->get_index() + 1 ) * 100);
-    //     communicator_obj->enqueue_message(msg1);
-    //     usleep( communicator_obj->get_index() + 1 ) * 1000);
-    //     communicator_obj->enqueue_message(msg2);
-    //     usleep( communicator_obj->get_index() + 1 ) * 100000);
-    //     communicator_obj->enqueue_message(msg3);
-    //     usleep( communicator_obj->get_index() + 1 ) * 1000000);
-    //     communicator_obj->enqueue_message(msg4);
-
-    // ##############  sporadic message writing code block  ################
-        
-}
-
-void test_DQ() {
-
-    Communicator *comm_obj;
-    string msg;
-
-    for ( int communicator_cntr = 0; communicator_cntr < NC; communicator_cntr++ ) {
-
-        comm_obj = communicators[communicator_cntr];
-        if ( comm_obj->is_queue_empty() ) { continue; }
-        
-        else { 
-            cout << "Emptying Communicator: " << communicator_cntr << " ..." << endl;
-            while ( ! ( comm_obj->is_queue_empty() ) ) {
-                msg = comm_obj->dequeue_message();
-                cout << "Servicing: " << msg << " ..." << endl;
-            }
-
-        }
-
-    }
-}
-
-void *printer_main(void *arg){
-
-    sem_wait(&sync_pc); // wait for a message to exist
-    sem_wait(&guard); // tell communicators you are reading a message
-
-    cout.write("Entered printer critical section.\n", 100);
-        
-    test_DQ();
-        
-    sem_post(&guard); // tell communicators you are done reading
-
-    while ( !TERMINATE ) {
-        usleep(500000);
-    }
-    
-    return 0;
-}
-
-void *communicator(void *arg) {
-
-    Communicator *comm_obj = (Communicator*) arg;
-
-    int sync_pc_val;
-
-    /*
-       sem_getvalue() places the current value of the semaphore pointed
-       to sem into the integer pointed to by sval.
-
-       If one or more processes or threads are blocked waiting to lock
-       the semaphore with sem_wait(3), POSIX.1 permits two possibilities
-       for the value returned in sval: either 0 is returned; or a
-       negative number whose absolute value is the count of the number
-       of processes and threads currently blocked in sem_wait(3).  Linux
-       adopts the former behavior.
-
-       sem_wait() decrements (locks) the semaphore pointed to by sem.
-       If the semaphore's value is greater than zero, then the decrement
-       proceeds, and the function returns, immediately.  If the
-       semaphore currently has the value zero, then the call blocks
-       until either it becomes possible to perform the decrement (i.e.,
-       the semaphore value rises above zero), or a signal handler
-       interrupts the call.
-       
-       sem_post() increments (unlocks) the semaphore pointed to by sem.
-       If the semaphore's value consequently becomes greater than zero,
-       then another process or thread blocked in a sem_wait(3) call will
-       be woken up and proceed to lock the semaphore.
-    
-    
-    */
- 
-    sem_wait(&comm_prot);                            // protect against other communicators
-    comm_count++;                                    // increase the number of communicators
-    if (comm_count == 1) sem_wait(&guard);           // if first communicator check if printer is reading
-    sem_post(&comm_prot);                            // release to allow other communicators through
-    
-    test_NQ(comm_obj);
-
-    sem_wait(&comm_prot);                             // protect against other communicators
-    comm_count--;                                    // decrease the number of communicators
-    if (comm_count == 0) {                           // if last communicator 
-            sem_post(&guard);  
-            sem_getvalue(&sync_pc, &sync_pc_val);    // release to allow printer to read if printer is waiting
-            if ( sync_pc_val == 0 ) {                // if printer read all prior messages
-                sem_post(&sync_pc);                  // indicate to printer new messages are available
-            }
-    }
-    sem_post(&comm_prot);                            // release to allow other communicators through
-
-    while ( !TERMINATE ) {
-        usleep(500000);
-    }
-
-
-    return 0;
-}
-
-// Printer Manager Methods Start
-
-int get_connection() {
-    
-    conn_queue_prot.lock();
-    int socket_fd = connection_queue->front();
-    connection_queue->pop();
-    conn_queue_prot.unlock();
-
-    return socket_fd;
-}
-
 void read_and_set_sys_params() {
 
     //configuration parameters file read start
     char delim[] = " ,";
     char config_data[255];
 
-    ifstream config_file("config.sys");
+    ifstream config_file;
+    
+    config_file.open("config.sys");
 
     if ( !config_file.good() ) {
-      cout << "Error: config.sys doesn't exist" << endl;
-      exit(-1);
-      
+        cout << "Error config file: `config.sys` does not exist." << endl;
     }
 
     config_file.getline(config_data, 255);
@@ -307,6 +824,7 @@ void read_and_set_sys_params() {
     cout << "Number of Communicators: " << NC << endl;
     cout << "Connection Queue Size: " << CQS << endl;
     cout << "Message Queue Size: " << MQS << endl;
+    cout << "Full Queue Select: " << full_queue_select << endl;
 
 }
 
@@ -317,11 +835,6 @@ void print_manager_init() {
     read_and_set_sys_params();
 
     connection_queue = new queue<int>();
-    
-    //initialize semaphores
-    sem_init(&sync_pc, 0, 0);
-    sem_init(&guard, 0, 1);
-    sem_init(&comm_prot, 0, 1);
 
     communicators = new Communicator*[NC];
     communicator_tids = new pthread_t[NC];
@@ -330,41 +843,56 @@ void print_manager_init() {
 
 }
 
+void ctrl_c_signal_callback_handlr(int signum) {
+    cout << "Received CTRL-C command" << endl;
+    TERMINATE = true;
+
+    terminate_communicators();
+    terminate_printer();
+    close_semaphores();
+
+    exit(0);
+}
+
 void printer_manager() {
     print_manager_init();
 
     char input;
     int cmd = -1;
 
+    signal(SIGINT, ctrl_c_signal_callback_handlr);
+
+    initialize_semaphores();
     spawn_communicators();
     spawn_printer();
 
     while( !TERMINATE ) {
-        usleep(10000);
-	    cout << "Terminate System? Type in 1 if Yes. > ";
-        
-        cin.get(input);
+        //get_connection();
+        usleep(100000);
 
-        if ( !isdigit(input) || input == '\n' ) {
-            cout << endl;
-            continue;
-        }
+        //cout << "Terminate System? Type in 1 if Yes. > ";
         
-        else {
-            cmd = ( (int) input ) - ( (int) '0' );
-        }
+        // cin.get(input);
 
-        if ( cmd == 1 ){
-            TERMINATE = true;
-        }
+        // if ( !isdigit(input) || input == '\n' ) {
+        //     cout << endl;
+        //     continue;
+        // }
+        
+        // else {
+        //     cmd = ( (int) input ) - ( (int) '0' );
+        // }
+
+        // if ( cmd == 1 ){
+        //     TERMINATE = true;
+        // }
     }
 
-    terminate_communicators();
-    terminate_printer();
+    //ctrl_c_signal_callback_handlr(0);
 
 }
 
-// Printer Manager Methods End
+// ############## PRINTER MANAGER METHODS END ############### 
 
 int main() {
     printer_manager();
