@@ -30,8 +30,9 @@ pthread_t printer;
 queue<int> *connection_queue;
 
 int comm_count;
-
 int full_queue_select = 0;
+
+map<string, FILE*> *file_desc_struct;
 
 int PT;
 int NC;
@@ -62,6 +63,14 @@ int Communicator::get_bin_selector(){
 
 void Communicator::set_bin_selector(int bin_selector){
     this->bin_selector = bin_selector;
+}
+
+bool Communicator::get_terminate_flag(){
+    return this->terminate_flag;
+}
+
+void Communicator::set_terminate_flag(){
+    this->terminate_flag = true;
 }
 
 void Communicator::enqueue_message(string msg){
@@ -183,8 +192,9 @@ void printer_init(string CID, map<string, FILE*> *file_desc_struct) {
     
     } else { 
         cout << "printer.out file already exists for Computer: " << CID << endl;
-        return; 
     }
+
+    return;
 
 }
 
@@ -225,8 +235,10 @@ void printer_init_spool(string CID, string PID, map<string, FILE*> *file_desc_st
 
     else {
         cout << "Spool file already exists for Computer: " << CID << " PID: " << PID << endl;
-        return; 
     }
+
+    return;
+
 
 }
 
@@ -246,11 +258,11 @@ void printer_end_spool(string CID, string PID, map<string, FILE*> *file_desc_str
 
 }
 
-void printer_dump_spool(map<int, FILE*> *file_desc_struct){
+void printer_dump_spool(map<string, FILE*> *file_desc_struct){
     
     auto f_desc_struct_begin = file_desc_struct->begin();
     auto f_desc_struct_end = file_desc_struct->end();
-    int PID;
+    string CID_PID;
 
     cout << "===========================" << endl;
     cout << "      Printer Dump         " << endl;
@@ -260,8 +272,9 @@ void printer_dump_spool(map<int, FILE*> *file_desc_struct){
     int index = 0;
 
     for ( auto f_desc_struct_it = f_desc_struct_begin; f_desc_struct_it != f_desc_struct_end; ++f_desc_struct_it ) {
-        PID = f_desc_struct_it->first;
-        cout << index << ":" << PID << endl;
+        CID_PID = f_desc_struct_it->first;
+        cout << index << ":" << CID_PID << endl;
+        index = index + 1;
     }
 
 }
@@ -286,7 +299,7 @@ void printer_print(string CID, string PID, string buffer, map<string, FILE*> *fi
 //For any process that has not terminated, print its partial output in its spool file
 //to the simulated paper, and add a message at the end to indicate that the process did
 //not finish yet. Then, clean up and terminate the printer process.
-void printer_terminate(map<string, FILE*> *file_desc_struct, FILE *printer_fp){
+void printer_terminate(string CID, map<string, FILE*> *file_desc_struct){
     
     auto f_desc_struct_begin = file_desc_struct->begin();
     auto f_desc_struct_end = file_desc_struct->end();
@@ -302,25 +315,40 @@ void printer_terminate(map<string, FILE*> *file_desc_struct, FILE *printer_fp){
         char CID_PID_delim[] = ".";
 
         char *id_param = strtok(CID_PID_str, CID_PID_delim);
-        string CID(id_param);
+        string curr_CID(id_param);
         id_param = strtok(NULL, CID_PID_delim);
-        string PID(id_param);
+        string curr_PID(id_param);
 
-        string footer =  "     Computer: " + CID + " Process: " + PID + " Terminated without Completion.\n";
-        //print_spool_to_printout(CID, PID, footer, );
+        if ( curr_CID.compare(CID) == 0 ) {
+
+            if ( curr_PID.compare("XXX") == 0 ) {
+                cout << "Printout file is still in the system: " << CID_PID << endl;
+                continue;
+            }
+
+            string footer =  "     Computer: " + curr_CID + " Process: " + curr_PID + " Terminated without Completion.\n";
+            cout << footer << endl;
+            print_spool_to_printout(curr_CID, curr_PID, footer, file_desc_struct);
+        }
+        
     }
 
-    //fclose(printer_out_fp);
-
+    string print_out_file_index = CID + ".XXX";
+    FILE *printer_out_fp = file_desc_struct->at(print_out_file_index);
+    fclose(printer_out_fp);
+    cout << "Erasing entry: " << print_out_file_index << endl;
+    file_desc_struct->erase(print_out_file_index);
 
 }
 
-void exec_printer_cmd(string cmd, string CID_PID, string data, map<string, FILE*> *file_desc_struct){
+int exec_printer_cmd(string cmd, string CID_PID, string data, map<string, FILE*> *file_desc_struct){
 
     //SPL is SPOOL INIT
     //END is SPOOL END
     //PRT is PRINT
     //TRM is TERMINATE
+
+    int ret_code = 0;
 
     char CID_PID_str[CID_PID.size() + 1];
     strcpy(CID_PID_str, CID_PID.c_str());
@@ -346,46 +374,42 @@ void exec_printer_cmd(string cmd, string CID_PID, string data, map<string, FILE*
         cout << "\t\t\tSpooling...                 \t\t\t\t" << CID_PID << endl;
         printer_init(CID, file_desc_struct);
         printer_init_spool(CID, PID, file_desc_struct);
+        //printer_dump_spool(file_desc_struct);
+
     } 
     
     else if ( cmd.compare(END) == 0 ) {
         cout << "\t\t\tEnding...                 \t\t\t\t" << CID_PID << endl;
-        // fp = file_desc_struct->at(PID);
-        // printer_end_spool(PID, fp, printer_out_fp);
-        // file_desc_struct->erase(PID);
+        printer_end_spool(CID, PID, file_desc_struct);
+        //printer_dump_spool(file_desc_struct);
 
     } 
     
     else if ( cmd.compare(PRT) == 0 ) {
         cout << "\t\t\tPrinting...                 \t\t\t\t" << CID_PID << endl;
-
-        // message = strtok(NULL, delim);
-        // cout << message << endl;
-        // fp = file_desc_struct->at(PID);
-        // printer_print(message, fp);
+        printer_print(CID, PID, data, file_desc_struct);
     } 
 
     else if ( cmd.compare(DMP) == 0 ) {
         cout << "\t\t\tDumping...                 \t\t\t\t" << CID_PID << endl;
-
-        // printer_dump_spool(file_desc_struct);
+        printer_dump_spool(file_desc_struct);
     }
     
     else if ( cmd.compare(TRM) == 0 ) {
         cout << "\t\t\tTerminating...                 \t\t\t\t" << CID_PID << endl;
-        // printer_terminate(file_desc_struct, printer_out_fp);
-        // fclose(printer_out_fp);
+        printer_terminate(CID, file_desc_struct);
+        ret_code = 1;
     } 
 
     else {
         cout << "Unknown CMD";
     }
 
-    return;
+    return ret_code;
 
 }
 
-void service_printer_cmd(string msg) {
+int service_printer_cmd(string msg, map<string, FILE*> *file_desc_struct) {
 
     char rcvd_msg[msg.size() + 1];
     strcpy(rcvd_msg, msg.c_str());
@@ -396,8 +420,6 @@ void service_printer_cmd(string msg) {
     FILE *fp = NULL;
     FILE *printer_out_fp = NULL;
 
-    map<string, FILE*> *file_desc_struct = new map<string, FILE*>();
-
     char delim[] = ",";
             
     message = strtok(rcvd_msg, delim);
@@ -407,7 +429,7 @@ void service_printer_cmd(string msg) {
     message = strtok(NULL, delim);
     string data(message);
 
-    exec_printer_cmd(command, CID_PID, data, file_desc_struct);
+    return exec_printer_cmd(command, CID_PID, data, file_desc_struct);
 }
 
 // ############## PRINTER METHODS END ###############
@@ -460,7 +482,7 @@ int set_bit(int bin_number, int bit_index) {
     return bin_number;
 }
 
-void test_NQ(Communicator *comm_obj, string msg) {
+void communicator_critical_section(Communicator *comm_obj, string msg) {
 
     int sem_wait_ret_code;
     int sem_post_ret_code;
@@ -499,7 +521,7 @@ void test_NQ(Communicator *comm_obj, string msg) {
         
 }
 
-void test_DQ() {
+void printer_critical_section(map<string, FILE*> *file_desc_struct) {
 
     if ( DEBUG_flag ) {
         cout << endl;
@@ -526,7 +548,12 @@ void test_DQ() {
                 msg = comm_obj->dequeue_message();
                 cout << endl;
                 cout << "\t\t\tServicing:                 \t\t------>\t\t" << msg << " ..." << endl;
-                service_printer_cmd(msg);
+                int ret_code = service_printer_cmd(msg, file_desc_struct);
+
+                if ( ret_code == 1 ) {
+                    cout << "Setting Terminate Flag..." << endl;
+                    comm_obj->set_terminate_flag();
+                }
             }
             
             full_queue_select = clear_bit(full_queue_select, comm_obj->get_index());
@@ -543,6 +570,7 @@ void *printer_main(void *arg){
     int sem_getval_ret_code;
     int sync_pc_val;
 
+    map<string, FILE*> *file_desc_struct = new map<string, FILE*>();
 
     while ( !TERMINATE ) {
         usleep(5000);
@@ -573,7 +601,7 @@ void *printer_main(void *arg){
             }
         }
 
-        test_DQ();
+        printer_critical_section(file_desc_struct);
         
         sem_post_ret_code = sem_post(comm_printer_guard); // tell communicators you are done reading    
     }
@@ -601,17 +629,17 @@ void *communicator(void *arg) {
 
     // ##############  sporadic message writing code block  ################
     usleep( ( comm_obj->get_index() + 1 ) * 10);
-    test_NQ(comm_obj, msg1);
+    communicator_critical_section(comm_obj, msg1);
     usleep( ( comm_obj->get_index() + 1 ) * 100);
-    test_NQ(comm_obj, msg2);
+    communicator_critical_section(comm_obj, msg2);
     usleep( ( comm_obj->get_index() + 1 ) * 10000);
-    test_NQ(comm_obj, msg3);
+    communicator_critical_section(comm_obj, msg3);
     usleep( ( comm_obj->get_index() + 1 ) * 100000);
-    test_NQ(comm_obj, msg4);
+    communicator_critical_section(comm_obj, msg4);
     usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-    test_NQ(comm_obj, msg5);
+    communicator_critical_section(comm_obj, msg5);
     usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-    test_NQ(comm_obj, msg6);
+    communicator_critical_section(comm_obj, msg6);
     // ##############  sporadic message writing code block  ################
 
     while ( !TERMINATE ) {
@@ -704,6 +732,7 @@ void initialize_semaphores() {
 }
 
 void close_semaphores() {
+
     sem_close(conn_queue_guard);
     sem_close(conn_queue_empty);
     sem_close(conn_queue_full);

@@ -47,4 +47,4 @@ printer_proj2.o: printer_proj2.cpp printer_proj2.h
 	$(CXX) $(CFLAGS) -c printer_proj2.cpp
 
 clean:
-	rm -f $(EXECUTABLE1) $(EXECUTABLE2) $(EXECUTABLE3) $(SERVER) $(CLIENT) $(PRINTER) $(OBJECT1) $(OBJECT2) $(OBJECT3) $(OBJECT4)
+	rm -f $(EXECUTABLE1) $(EXECUTABLE2) $(EXECUTABLE3) $(SERVER) $(CLIENT) $(PRINTER) $(OBJECT1) $(OBJECT2) $(OBJECT3) $(OBJECT4) *.out

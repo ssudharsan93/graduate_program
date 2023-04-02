@@ -24,6 +24,7 @@ class Communicator {
 private:
     int index;
     int bin_selector;
+    bool terminate_flag = false;
     queue<string> *message_queue;
     mutex msg_queue_prot;
 public:
@@ -33,6 +34,8 @@ public:
     void set_index(int index);
     int get_bin_selector();
     void set_bin_selector(int bin_selector);
+    bool get_terminate_flag();
+    void set_terminate_flag();
     void init_message_queue();
     void enqueue_message(string msg);
     string dequeue_message();
@@ -42,15 +45,15 @@ public:
 
 // Printer Methods
 void send_response(int printer_write, string response);
-void print_spool_to_printout(string CID, string PID, string footer, map<int, FILE*> *file_desc_struct);
+void print_spool_to_printout(string CID, string PID, string footer, map<string, FILE*> *file_desc_struct);
 void printer_init(string CID, string PID, map<string, FILE*> *file_desc_struct);
 void printer_init_spool(string CID, string PID, map<string, FILE*> *file_desc_struct);
-void printer_end_spool(string CID, string PID, map<int, FILE*> *file_desc_struct);
-void printer_dump_spool(map<int, FILE*> *file_desc_struct);
-void printer_print(string CID, string PID, map<int, FILE*> *file_desc_struct);
-void printer_terminate(map<int, FILE*> *file_desc_struct, FILE *printer_fp);
-void exec_printer_cmd(string cmd, string CID_PID, string data, map<int, FILE*> *file_desc_struct);
-void service_cmd(string msg);
+void printer_end_spool(string CID, string PID, map<string, FILE*> *file_desc_struct);
+void printer_dump_spool(map<string, FILE*> *file_desc_struct);
+void printer_print(string CID, string PID, map<string, FILE*> *file_desc_struct);
+void printer_terminate(string CID, map<string, FILE*> *file_desc_struct);
+int exec_printer_cmd(string cmd, string CID_PID, string data, map<string, FILE*> *file_desc_struct);
+int service_cmd(string msg, map<string, FILE*> *file_desc_struct);
 
 bool is_bit_set(int bin_number, int bit_index);
 int clear_bit(int bin_number, int bit_index);
