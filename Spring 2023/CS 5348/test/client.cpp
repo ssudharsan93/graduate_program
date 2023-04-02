@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,7 +10,7 @@
 
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
 
     int client_fd;
 
@@ -21,8 +22,6 @@ int main() {
     int port = 8140;
 
     struct sockaddr_in server_addr;
-    // struct sockaddr_in client_addr;
-    // int client_addrlen = sizeof(client_addr);
 
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
@@ -30,20 +29,10 @@ int main() {
     inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
     server_addr.sin_port = htons(port);
 
-    // struct timeval timeout;
-    // timeout.tv_sec = 10; // set timeout to 5 seconds
-    // timeout.tv_usec = 0;
-
-
-    // int sock_opt_ret = setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-    // cout << "Sock Option Return Code: " << sock_opt_ret << endl;
-    // if(sock_opt_ret < 0) {
-    //     perror("Error setting socket option");
-    //     exit(EXIT_FAILURE);
-    // }
-
+    int connection_accepted_code;
 
     int connect_ret = connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    int recv_ret = recv(client_fd, &connection_accepted_code, sizeof(connection_accepted_code), 0);
 
     if ( connect_ret < 0 ) {
         cout << "Error code: " << errno << endl;
@@ -53,27 +42,52 @@ int main() {
             perror("Error connecting to server");
         }
     }
-    
-    char buffer[1024];
-    int recv_ret = recv(client_fd, buffer, sizeof(buffer), 0);
 
-    cout << buffer << endl;
+    if ( connection_accepted_code == 1 ) {
+        cout << "Connection to server accepted. Server is ready to accept messages." << endl;
 
-    cout << "Connection Return Code: " << connect_ret << endl;
-    cout << "Recv Return Code: " << recv_ret << endl;
-        
-    // string my_msg = "You Up?\n";
-    // char client_msg[my_msg.size() + 1];
-    // strcpy(client_msg, my_msg.c_str());
-    // send(client_fd, client_msg, sizeof(client_msg), 0);
-
-    // if (connect_ret < 0) {
-    //     cout << "Connection Refused: " << strerror(errno) << endl;
-    //     perror("Connection Refused: ");
-    // }
-
-    while ( true ) {
-        usleep(100);
     }
+
+    int index = 0;
+    int num_of_prints = 10;
+
+    if ( argc < 2 || ( string(argv[1]).length() == 0 ) ) {
+        cout << "No Computer ID or irregular Computer ID provided" << endl;
+        exit(1);
+    }
+
+    string Computer_ID = string(argv[1]);
+
+    cout << "User provided CID = " <<  Computer_ID << endl;
+
+    char buffer[1024];
+
+    string CID = to_string(index + 1);
+
+    string msg1 = "SPL," + Computer_ID + ".1,###";
+    string msg3 = "END," + Computer_ID + ".1,###";
+    string msg4 = "TRM," + Computer_ID + ".1,###";
+
+    strcpy(buffer, msg1.c_str());
+    recv_ret = send(client_fd, buffer, sizeof(buffer), 0);
+
+    for ( int i = 0; i < num_of_prints; i++ ) {
+        usleep( ( 1.5 ) * 1000000);
+        
+        string msg2 = "PRT," + Computer_ID + ".1,AC:" + to_string(5 * i);
+
+        strcpy(buffer, msg2.c_str());
+        recv_ret = send(client_fd, buffer, sizeof(buffer), 0);
+    }
+
+    usleep( ( index + 1 ) * 1000000);
+    strcpy(buffer, msg3.c_str());
+    recv_ret = send(client_fd, buffer, sizeof(buffer), 0);
+
+    usleep( ( index + 1 ) * 10000000);
+    strcpy(buffer, msg4.c_str());
+    recv_ret = send(client_fd, buffer, sizeof(buffer), 0);
+
+    usleep( ( index + 1 ) * 10000000);
 
 }

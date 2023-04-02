@@ -34,12 +34,14 @@ int full_queue_select = 0;
 
 map<string, FILE*> *file_desc_struct;
 
+int SERVER_FD;
 int PT;
 int NC;
 int CQS;
 int MQS;
 bool TERMINATE = false;
 bool DEBUG_flag = true;
+bool SPOOF_flag = false;
 
 Communicator::Communicator() {
     this->message_queue = new queue<string>();
@@ -71,6 +73,10 @@ bool Communicator::get_terminate_flag(){
 
 void Communicator::set_terminate_flag(){
     this->terminate_flag = true;
+}
+
+void Communicator::clear_terminate_flag(){
+    this->terminate_flag = false;
 }
 
 void Communicator::enqueue_message(string msg){
@@ -550,12 +556,7 @@ void printer_critical_section(map<string, FILE*> *file_desc_struct) {
                 msg = comm_obj->dequeue_message();
                 cout << endl;
                 cout << "\t\t\tServicing:                 \t\t------>\t\t" << msg << " ..." << endl;
-                int ret_code = service_printer_cmd(msg, file_desc_struct);
-
-                if ( ret_code == 1 ) {
-                    cout << "Setting Terminate Flag..." << endl;
-                    comm_obj->set_terminate_flag();
-                }
+                service_printer_cmd(msg, file_desc_struct);
             }
             
             full_queue_select = clear_bit(full_queue_select, comm_obj->get_index());
@@ -575,8 +576,6 @@ void *printer_main(void *arg){
     map<string, FILE*> *file_desc_struct = new map<string, FILE*>();
 
     while ( !TERMINATE ) {
-        usleep(5000);
-
         sem_wait_ret_code = sem_wait(sync_pc); // wait for a message to exist
         
         if ( sem_wait_ret_code == -1 ) {
@@ -615,50 +614,94 @@ void *communicator(void *arg) {
 
     Communicator *comm_obj = (Communicator*) arg;
 
-    int sleeps[] = {10, 100, 1000, 10000, 100000};
-    string delim = ",";
-    string PIDs[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
-    string CMDs[] = {"SPL", "PRT", "END", "TRM"};
     string values[] = {"AC:20", "AC:5000", "AC:89000"};
-    int msg_count_per_computer = 6;
     int num_of_computers_serviced = 0;
 
-    while (! TERMINATE ) {
-        cout << "Communicator: " << comm_obj->get_index()<< " is waiting for a connection..." << endl;
-        string CID = to_string(get_connection());
-        cout << "Communicator is acquiring connection..." << endl;
+    string msg;
+    string CMD;
 
-        string msg1 = "SPL," + CID + ".1,###";
-        string msg2 = "PRT," + CID + ".1," + values[0];
-        string msg3 = "PRT," + CID + ".1," + values[1];
-        string msg4 = "PRT," + CID + ".1," + values[2];
-        string msg5 = "END," + CID + ".1,###";
-        string msg6 = "TRM," + CID + ".1,###";
+    bool terminate_conn_received = false;
 
-        // string msg1 = "SPL," + to_string(comm_obj->get_index()) + ".1,###";
-        // string msg2 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[0];
-        // string msg3 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[1];
-        // string msg4 = "PRT," + to_string(comm_obj->get_index()) + ".1," + values[2];
-        // string msg5 = "END," + to_string(comm_obj->get_index()) + ".1,###";
-        // string msg6 = "TRM," + to_string(comm_obj->get_index()) + ".1,###";
+    while ( !TERMINATE ) {
+        
+        if ( DEBUG_flag ) {
+            cout << "Communicator: " << comm_obj->get_index()<< " is waiting for a connection..." << endl;
+        }
+        
+        if ( SPOOF_flag ) {
 
-        // ##############  sporadic message writing code block  ################
-        usleep( ( comm_obj->get_index() + 1 ) * 10);
-        communicator_critical_section(comm_obj, msg1);
-        usleep( ( comm_obj->get_index() + 1 ) * 100);
-        communicator_critical_section(comm_obj, msg2);
-        usleep( ( comm_obj->get_index() + 1 ) * 10000);
-        communicator_critical_section(comm_obj, msg3);
-        usleep( ( comm_obj->get_index() + 1 ) * 100000);
-        communicator_critical_section(comm_obj, msg4);
-        usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-        communicator_critical_section(comm_obj, msg5);
-        usleep( ( comm_obj->get_index() + 1 ) * 1000000);
-        communicator_critical_section(comm_obj, msg6);
-        // ##############  sporadic message writing code block  ################
+            string CID = to_string(get_connection()); 
 
-        //num_of_computers_serviced = num_of_computers_serviced + 1;
+            if ( DEBUG_flag ) {
+                cout << "Communicator is acquired connection." << endl;
+            }
 
+            int spoof_PID = 1;
+
+            string msg1 = "SPL," + CID + "." + to_string(spoof_PID) + ",###";
+            string msg2 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[0];
+            string msg3 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[1];
+            string msg4 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[2];
+            string msg5 = "END," + CID + "." + to_string(spoof_PID) + ",###";
+            string msg6 = "TRM," + CID + "." + to_string(spoof_PID) + ",###";
+
+            usleep( ( comm_obj->get_index() + 1 ) * 10);
+            communicator_critical_section(comm_obj, msg1);
+            usleep( ( comm_obj->get_index() + 1 ) * 100);
+            communicator_critical_section(comm_obj, msg2);
+            usleep( ( comm_obj->get_index() + 1 ) * 10000);
+            communicator_critical_section(comm_obj, msg3);
+            usleep( ( comm_obj->get_index() + 1 ) * 100000);
+            communicator_critical_section(comm_obj, msg4);
+            usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+            communicator_critical_section(comm_obj, msg5);
+
+            spoof_PID = 2;
+
+            msg1 = "SPL," + CID + "." + to_string(spoof_PID) + ",###";
+            msg2 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[0];
+            msg3 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[1];
+            msg4 = "PRT," + CID + "." + to_string(spoof_PID) + "," + values[2];
+            msg5 = "END," + CID + "." + to_string(spoof_PID) + ",###";
+            msg6 = "TRM," + CID + "." + to_string(spoof_PID) + ",###";
+
+            usleep( ( comm_obj->get_index() + 1 ) * 10);
+            communicator_critical_section(comm_obj, msg1);
+            usleep( ( comm_obj->get_index() + 1 ) * 100);
+            communicator_critical_section(comm_obj, msg2);
+            usleep( ( comm_obj->get_index() + 1 ) * 10000);
+            communicator_critical_section(comm_obj, msg3);
+            usleep( ( comm_obj->get_index() + 1 ) * 100000);
+            communicator_critical_section(comm_obj, msg4);
+
+            //TERMINATE
+            usleep( ( comm_obj->get_index() + 1 ) * 1000000);
+            communicator_critical_section(comm_obj, msg6);
+        }
+
+        int client_fd = get_connection();
+
+        if ( DEBUG_flag ) {
+            cout << "Communicator has acquired connection: " << client_fd << endl;
+        }
+
+        while ( !terminate_conn_received ) {
+            string msg = get_msg_from_connection(client_fd);
+            CMD =  msg.substr(0, msg.find(","));
+            
+            if ( CMD.compare("TRM") == 0 ) {
+                if ( DEBUG_flag ) {
+                    cout << "Terminate received. Closing client file descriptor." << endl;
+                }
+                
+                close(client_fd);
+                terminate_conn_received = true;
+            }
+            
+            communicator_critical_section(comm_obj, msg);
+        }
+
+        terminate_conn_received = false;
     }
 
     // while ( !TERMINATE ) {
@@ -666,6 +709,27 @@ void *communicator(void *arg) {
     // }
 
     return 0;
+}
+
+string get_msg_from_connection(int client_fd) {
+
+    if ( DEBUG_flag ) {
+        cout << "Trying to get a message from client: " << to_string(client_fd) << endl;
+    } 
+    
+    char buffer[1024];
+    int recv_ret = recv(client_fd, buffer, sizeof(buffer), 0);
+    string msg = string(buffer);
+
+    if ( recv_ret > 0 ) {
+        if ( DEBUG_flag ) {
+            cout << "Message: " << msg << " Message Size: "<< msg.length() << endl;
+        }
+        return msg;
+    }
+
+    return "";
+
 }
 
 int get_connection() {
@@ -689,6 +753,25 @@ int get_connection() {
 // ############## THREAD METHODS END ###############
 
 // ############## PRINTER MANAGER METHODS START ############### 
+void test_connection_acceptance() {
+
+    place_connection(1);
+    place_connection(2);
+    place_connection(3);
+
+    // for (int i = 0; i < 10000; i++) {
+    //     place_connection(i);
+    //     place_connection(i+1);
+    //     place_connection(i+2);
+    //     place_connection(i+3);
+        
+    //     usleep(10000000);
+    //     place_connection(i+4);
+    //     place_connection(i+5);
+    //     place_connection(i+6);
+    // }
+
+}
 
 void place_connection(int socket) {
 
@@ -696,7 +779,7 @@ void place_connection(int socket) {
     int sem_post_ret_code;
     int sem_getval_ret_code;
     
-    cout << "Printer Manager is attempting to place a connection..." << endl;
+    cout << "Printer Manager is attempting to place connection: " << socket << endl;
     
     sem_wait_ret_code = sem_wait(conn_queue_full);
     sem_wait_ret_code = sem_wait(conn_queue_guard);
@@ -733,7 +816,7 @@ void initialize_semaphores() {
         exit(1);
     }
 
-    sync_pc = sem_open("/proj3_sync_pc", O_CREAT, 0666, 1);
+    sync_pc = sem_open("/proj3_sync_pc", O_CREAT, 0666, 0);
     
     if (sync_pc == SEM_FAILED) {
         perror("sem_open");
@@ -841,6 +924,46 @@ void terminate_communicators() {
     
 }
 
+int accept_connection() {
+    
+    struct sockaddr_in client_addr;
+    int client_addrlen = sizeof(client_addr);
+
+    int new_conn_fd = accept(SERVER_FD, (struct sockaddr *) &client_addr, (socklen_t*) &client_addrlen);
+    int conn_accept_code = 1;
+    send(new_conn_fd, &conn_accept_code, sizeof(conn_accept_code), 0);
+
+    return new_conn_fd;
+
+}
+
+int set_up_printer_socket() {
+    
+    int server_fd;
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if ( server_fd < 0 ){
+        perror("Error socket: ");
+    }
+
+    int port = 8140;
+
+    struct sockaddr_in server_addr;
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(port);
+
+    int bind_ret = bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
+    if ( bind_ret < 0 ) {
+        perror("Error bind: ");
+    }
+
+    return server_fd;
+
+}
+
 void read_and_set_sys_params() {
 
     //configuration parameters file read start
@@ -880,24 +1003,29 @@ void read_and_set_sys_params() {
 
 }
 
-void print_manager_init() {
+int print_manager_init() {
 
     comm_count = 0;
 
     read_and_set_sys_params();
+
+    int server_fd = set_up_printer_socket();
+
 
     connection_queue = new queue<int>();
 
     communicators = new Communicator*[NC];
     communicator_tids = new pthread_t[NC];
 
-    return;
+    return server_fd;
 
 }
 
 void ctrl_c_signal_callback_handlr(int signum) {
     cout << "Received CTRL-C command" << endl;
     TERMINATE = true;
+
+    close(SERVER_FD);
 
     terminate_communicators();
     terminate_printer();
@@ -907,7 +1035,8 @@ void ctrl_c_signal_callback_handlr(int signum) {
 }
 
 void printer_manager() {
-    print_manager_init();
+    
+    SERVER_FD = print_manager_init();
 
     char input;
     int cmd = -1;
@@ -918,34 +1047,26 @@ void printer_manager() {
     spawn_communicators();
     spawn_printer();
 
-    usleep(100000);
-    place_connection(1);
-    place_connection(2);
-    place_connection(3);
-    place_connection(4);
-    place_connection(5);
-    place_connection(6);
+    if ( SPOOF_flag ) {
+        test_connection_acceptance();
+    }
+
+    struct sockaddr_in client_addr;
+    int client_addrlen = sizeof(client_addr);
+
+    listen(SERVER_FD, 32);
 
     while( !TERMINATE ) {
-        usleep(100000);
-        //get_connection();
 
-        //cout << "Terminate System? Type in 1 if Yes. > ";
+        //usleep(500000);
+        cout << "Server is listening..." << endl;
+        int new_conn_fd = accept(SERVER_FD, (struct sockaddr *) &client_addr, (socklen_t*) &client_addrlen);
+
+        int conn_accept_code = 1;
+        send(new_conn_fd, &conn_accept_code, sizeof(conn_accept_code), 0);
         
-        // cin.get(input);
+        place_connection(new_conn_fd);
 
-        // if ( !isdigit(input) || input == '\n' ) {
-        //     cout << endl;
-        //     continue;
-        // }
-        
-        // else {
-        //     cmd = ( (int) input ) - ( (int) '0' );
-        // }
-
-        // if ( cmd == 1 ){
-        //     TERMINATE = true;
-        // }
     }
 
     //ctrl_c_signal_callback_handlr(0);

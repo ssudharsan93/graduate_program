@@ -18,6 +18,10 @@
 #include <fcntl.h>
 #include <map>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 using namespace std;
 
 class Communicator {
@@ -36,6 +40,7 @@ public:
     void set_bin_selector(int bin_selector);
     bool get_terminate_flag();
     void set_terminate_flag();
+    void clear_terminate_flag();
     void init_message_queue();
     void enqueue_message(string msg);
     string dequeue_message();
@@ -72,13 +77,16 @@ void terminate_communicators();
 // Main Thread Methods
 void *printer_main(void *PrintingTime);
 void *communicator(void *arg);
+string get_msg_from_connection(int client_fd);
 int get_connection();
 
 // Printer Manager methods
-void place_connection();
+void test_connection_acceptance();
+void place_connection(int socket);
+int set_up_printer_socket();
 void read_and_set_sys_params();
 void ctrl_c_signal_callback_handlr(int signum);
-void print_manager_init();
+int print_manager_init();
 void printer_manager();
 
 // Test Critical Section Methods
