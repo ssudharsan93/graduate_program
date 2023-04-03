@@ -1,0 +1,72 @@
+In order to synchronize between the communicators and the printers.
+the scheme I used is similar to the reader - writer problem. I have 
+a bit queue selector, that helps me determine which queue is not empty.
+I give each communicator an index that uniquely identifies itself.
+For example communicator 4 would have index 3 and thus would be selected
+by using the bit 1000, with bit 3 set.
+
+I used 3 semaphores. 
+ 
+    -comm_printer_guard: 
+        To prevent communicators from putting messages in 
+        their queue while the printer is reading. Also to 
+        prevent the printer from reading and servicing messages
+        while the communicators are putting messages in their queue.
+    
+    -comm_prot:
+        To protect communicators against each other when, for example
+        the first communicator is waiting on guard (i.e. printer is currently reading), 
+        or for example to prevent communicators from increasing the count of communicators
+        in the critical section. Also to prevent communicators from changing the
+        queue selector `full_queue_selector` at the same time.
+
+    -sync_pc:
+        To indicate to the printer how many non-empty queues there are
+        that can be serviced. This value is initialized to 0, and grows to 
+        become as large as NC ( the number of communicators );
+
+
+The following scheme is in accordance with these rules:
+    - While the printer is reading the communicators should not write to their queues.
+    - While the communicators are writing, you can allow more communicators in, but printer should not read from a queue.
+    - When the printer has the critical section and a non-empty queue is found, read the queue completely and
+      service the messages in that queue. Then leave the critical section.
+
+
+The scheme is as follows:
+
+Printer: 
+         wait(sync_pc);         // wait for a message to exist; sync_pc = how many total messages exist in all queues
+         wait(guard);           // tell communicators you are reading a message
+         
+         DQ;                    // until queue is empty
+         service_msg;
+         
+         signal(guard);         // tell communicators you are done reading
+
+         
+
+Communicator:
+        
+        wait(comm_prot);                    // protect against other communicators
+        comm_count++;                       // increase the number of communicators
+        if (comm_count == 1) wait(guard);   // if first communicator check if printer is reading
+        signal(comm_prot);                  // release to allow other communicators through
+        
+        NQ;                                 // NQ, put message into communicator's own queue
+        
+        wait(comm_prot);                    // protect against other communicators
+        comm_count--;                       // decrease the number of communicators
+        
+        if ( ! ( is_bit_set(full_queue_select, comm_obj->get_index())) ) {  // if bit was not set before, queue was empty
+            sem_post_ret_code = sem_post(sync_pc);                          // signal sync_pc to indicate that another queue
+        }                                                                   // is no longer empty
+
+        set_bit(full_queue_select, comm_obj->get_index()); // set the bit corresponding to the  communicator
+                                                           // to indicate non-empty queue
+
+        if (comm_count == 0) {              // if last communicator 
+                signal(guard);              // release to allow printer to read if printer is waiting
+        }
+        
+        signal(comm_prot);                  // release to allow other communicators through

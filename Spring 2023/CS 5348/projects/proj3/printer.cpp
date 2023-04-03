@@ -41,6 +41,7 @@ int NC;
 int CQS;
 int MQS;
 bool TERMINATE = false;
+bool BIT_DEBUG_flag = false;
 bool DEBUG_flag = true;
 bool SPOOF_flag = false;
 
@@ -446,7 +447,7 @@ int service_printer_cmd(string msg, map<string, FILE*> *file_desc_struct) {
 bool is_bit_set(int bin_number, int bit_index) {
     bool bit_is_set = ( bin_number >> bit_index & 1 ) == 1 ? true : false;
 
-    if ( DEBUG_flag ) {
+    if ( BIT_DEBUG_flag ) {
         cout << endl;
         cout << "\t\tIs Bit Number " << bit_index << " for number: ";
         cout << bin_number << " set? : " << bit_is_set << endl;
@@ -457,7 +458,7 @@ bool is_bit_set(int bin_number, int bit_index) {
 
 int clear_bit(int bin_number, int bit_index) {
 
-    if ( DEBUG_flag ) {
+    if ( BIT_DEBUG_flag ) {
         cout << endl;
         cout << "\t\tNumber before bit " << bit_index << " was cleared: " << bin_number << endl;
     }
@@ -466,7 +467,7 @@ int clear_bit(int bin_number, int bit_index) {
     bin_number = bin_number & ~mask; // do bitwise negation so there are 1s in every other place
                                      // and a 0 in the bit to be cleared.
     
-    if ( DEBUG_flag ) {
+    if ( BIT_DEBUG_flag ) {
         cout << "\t\tNumber after bit " << bit_index << " was cleared: " << bin_number << endl;
         cout << endl;
     }
@@ -475,7 +476,7 @@ int clear_bit(int bin_number, int bit_index) {
 }
 int set_bit(int bin_number, int bit_index) {
 
-    if ( DEBUG_flag ) {
+    if ( BIT_DEBUG_flag ) {
         cout << endl;
         cout << "\t\tNumber before bit " << bit_index << " was set: " << bin_number << endl;
     }
@@ -483,7 +484,7 @@ int set_bit(int bin_number, int bit_index) {
     int mask = 1 << bit_index;
     bin_number = bin_number | mask;
 
-    if ( DEBUG_flag ){
+    if ( BIT_DEBUG_flag ){
         cout << "\t\tNumber after bit " << bit_index << " was set: " << bin_number << endl;
         cout << endl;
     }
@@ -517,7 +518,7 @@ void communicator_critical_section(Communicator *comm_obj, string msg) {
     sem_wait_ret_code = sem_wait(comm_prot);             // protect against other communicators
     comm_count--;                                        // decrease the number of communicators
 
-    if ( ( ( full_queue_select >> comm_obj->get_index() ) & 1 ) == 0 ) {
+    if ( ! ( is_bit_set(full_queue_select, comm_obj->get_index()) ) ) {
        sem_post_ret_code = sem_post(sync_pc);
     }
     
@@ -952,7 +953,7 @@ int set_up_printer_socket() {
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(server_port_number);
 
-    int bind_ret = bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
+    int bind_ret = ::bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if ( bind_ret < 0 ) {
         perror("Error bind: ");
     }

@@ -4,19 +4,18 @@ Professor Yen
 CS 5348.501
 UTD ID: 2021668140
 
-The script is run, just by running the 'execute' script.
-Namely, `./execute`. This will clean the directory
-if necessary and make the corresponding 'computer.exe' file necessary to run
-the code. It will then take in input from comp.in (a sample comp.in) file is
-provided and then write out to comp.out. It will also run computer.exe
-while taking in input from comp.in and pipe the output to the 'wc' command.
-A sample config.sys file is also provided with the three parameters to the
-system provided with a comma separating them. The first parameter being
-the memory size, the second being the time quantum, and the third being
-the printing time.
+DISCLAIMER:
 
-Alternatively you can run this script simply by running `./computer.exe`
-or by piping in input from comp.in by running `./computer.exe < comp.in`.
+Running `make clean; make` will allow this directory to clean prior printer.out files.
+It will build the Server program `printer.exe` and the Client program `computer.exe`.
+Care should be taken to provide the proper ip-address corresponding to the machine that
+the Server program is run on. If you are running both the server program and client program
+on the same machine, localhost i.e. 127.0.0.1 can be used for the ip-address. A port number
+corresponding to my student id is used in the `config.sys` file that is provided in this directory.
+The user that attempts to run this program should use their own port number.
+
+You can run this script simply by running `./computer.exe YOUR_COMPUTER_ID`
+or by piping in input from comp.in by running `./computer.exe YOUR_COMPUTER_ID < comp.in`.
 A sample 'comp.in' file is provided for your convenience and some additional
 test scripts named 'add', 'mul', and 'prog1'. These program files do very simple
 operations, like multiplying a value repeatedly or adding a value repeatedly, or
@@ -24,13 +23,7 @@ sleeping. 'prog-idle' is also provided in this directory. This is a sample
 idle program personally created. The 'prog-idle' program file can be replaced
 with another idle program file provided it is named 'prog-idle'. 
 
-Assuming that concurrency control is not expected for this project, the
-code sporadically results in segmentation fault or hangs expecting input  
-due to the lack of concurrency control. The program also completes sporadically.
-
-Sleeps were added to allow this program to run more consistently. A small sleep was added 
-between process execution, and a substantial sleep was added when the user 
-submits a termination command, to allow processes a chance to complete.
+Concurrency control was implemented, so this program should run to completion.
 
 Additionally, WARNING: 
 
