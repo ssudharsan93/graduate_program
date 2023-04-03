@@ -39,4 +39,4 @@ printer.o: printer.cpp printer.h
 		$(CXX) $(CFLAGS) -c printer.cpp
 
 clean:
-	rm -f $(COMPUTER) $(PRINTER) $(OBJECTS) *.out
+	rm -f $(COMPUTER) $(PRINTER) $(OBJECTS) *.out printer.o
