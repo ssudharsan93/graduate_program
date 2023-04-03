@@ -14,6 +14,12 @@ on the same machine, localhost i.e. 127.0.0.1 can be used for the ip-address. A 
 corresponding to my student id is used in the `config.sys` file that is provided in this directory.
 The user that attempts to run this program should use their own port number.
 
+The order in the config.sys file is as follows, with each parameter comma-separated,
+IP_ADDRESS,PORT_NUMBER,M,TQ,PT,NC,CQS,MQS.
+
+The server program, `printer.exe` runs to completion, then upon issuing a CTRL-C command, which is
+necessary to kill the program, then upon tearing down the program results in segmentation fault. 
+
 You can run this script simply by running `./computer.exe YOUR_COMPUTER_ID`
 or by piping in input from comp.in by running `./computer.exe YOUR_COMPUTER_ID < comp.in`.
 A sample 'comp.in' file is provided for your convenience and some additional
