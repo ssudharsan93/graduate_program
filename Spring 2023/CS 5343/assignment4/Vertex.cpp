@@ -6,6 +6,11 @@ Vertex::Vertex(string name, int index){
     this->adjacent_nodes = new vector<Vertex*>();
     this->incident_edges = new vector<Edge*>();
 }
+
+Vertex::~Vertex(){
+    delete this->adjacent_nodes;
+    delete this->incident_edges;
+}
     
 string Vertex::get_name() {
     return this->name;
@@ -27,8 +32,24 @@ bool Vertex::is_adjacent(Vertex *vertex_to_check){
 
     return false;
 
-
 }
+
+void Vertex::add_adjacent_node(Vertex* adjacent_node) {
+    this->adjacent_nodes->push_back(adjacent_node);
+}
+
+void Vertex::add_incident_edge(Edge* incident_edge) {
+    this->incident_edges->push_back(incident_edge);
+}
+
+vector<Vertex*>* Vertex::get_adjacent_nodes(){
+    return this->adjacent_nodes;
+}
+
 vector<Edge*>* Vertex::get_incident_edges(){
     return this->incident_edges;
+}
+
+void Vertex::print_vertex(){
+    cout << "\t" << this->index << " : " << this->name << endl; 
 }
