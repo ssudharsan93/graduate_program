@@ -1,16 +1,25 @@
-EXECUTABLE1 = hw3
-SOURCES = main.cpp
+EXECUTABLE = hw4
+SOURCES = main.cpp Graph.cpp Edge.cpp Vertex.cpp
 CXX = g++
 CFLAGS = -Wall
 OBJECTS = $(SOURCES:.cpp=.o)
 
-all: $(EXECUTABLE1)
+all: $(EXECUTABLE)
 
-$(EXECUTABLE1) : main.o
-	$(CXX) main.o -o $(EXECUTABLE1)
+$(EXECUTABLE) : main.o Graph.o Edge.o Vertex.o
+	$(CXX) $(OBJECTS) -o $(EXECUTABLE)
 
 main.o: main.cpp
 	$(CXX) $(CFLAGS) -c main.cpp
 
+Graph.o: Graph.cpp Graph.h
+	$(CXX) $(CFLAGS) -c Graph.cpp
+
+Edge.o: Edge.cpp Edge.h
+	$(CXX) $(CFLAGS) -c Edge.cpp
+
+Vertex.o: Vertex.cpp Vertex.h
+	$(CXX) $(CFLAGS) -c Vertex.cpp
+
 clean:
-	rm -f ${EXECUTABLE1} $(OBJECTS)
+	rm -f ${EXECUTABLE} $(OBJECTS)
