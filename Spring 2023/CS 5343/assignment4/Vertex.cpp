@@ -20,7 +20,7 @@ bool Vertex::is_adjacent(Vertex *vertex_to_check){
     int vector_size = this->adjacent_nodes->size();
     
     for ( int vector_cntr = 0; vector_cntr < vector_size; vector_cntr++ ){
-        if ( this->adjacent_nodes[vector_cntr] == vertex_to_check ){
+        if ( this->adjacent_nodes->at(vector_cntr) == vertex_to_check ){
             return true;
         }
     }

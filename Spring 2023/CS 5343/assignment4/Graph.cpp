@@ -22,8 +22,8 @@ void Graph::erase_vertex(Vertex *vertex_to_be_deleted){
     
     int vector_size = this->vertices->size();
     for ( int vector_cntr = 0; vector_cntr < vector_size; vector_cntr++ ){
-        if ( this->vertices[vector_cntr] == vertex_to_be_deleted ){
-            this->vertices->erase(vector_cntr);
+        if ( this->vertices->at(vector_cntr) == vertex_to_be_deleted ){
+            this->vertices->erase(this->vertices->begin() + vector_cntr);
         }
     }
 
@@ -33,8 +33,8 @@ void Graph::erase_edge(Edge *edge_to_be_deleted){
 
     int vector_size = this->edges->size();
     for ( int vector_cntr = 0; vector_cntr < vector_size; vector_cntr++ ){
-        if ( this->vertices[vector_cntr] == edge_to_be_deleted ){
-            this->vertices->erase(vector_cntr);
+        if ( this->edges->at(vector_cntr) == edge_to_be_deleted ){
+            this->edges->erase(this->edges->begin() + vector_cntr);
         }
     }
 
@@ -71,8 +71,10 @@ void Graph::print_edges(){
     auto edges_map_begin = this->edges->begin();
     auto edges_map_end = this->edges->end();
 
+    Vertex *curr_vertex;
+
     for ( auto edges_it = edges_map_begin; edges_it != edges_map_end; ++edges_it ) {
-    
+        vertices_it->first;
     }
 
 }
