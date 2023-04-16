@@ -1,6 +1,12 @@
 This folder contains a
   -Makefile
   -main.cpp source file
+  -Graph.cpp source file
+  -Vertex.cpp source file
+  -Edge.cpp source file
+  -Graph.h header file
+  -Vertex.h header file
+  -Edge.h header file
 
 In order to compile the files in this folder,
 and create executables, you simply run the
@@ -8,9 +14,9 @@ and create executables, you simply run the
 will get rid of executables and object files.
 
 In order to run the executable file
-'hw3' simply run `./hw4` 
-on the command line to run the heap sort
-floyd's algorithm.
+'hw4' simply run `./hw4` 
+on the command line to run Dijkstra's
+shortest path algorithm.
 
 If you prefer not to compile, the executable file
 `hw4` is provided for you. To run it, simply run `./hw4`

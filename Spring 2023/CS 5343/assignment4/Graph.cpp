@@ -193,8 +193,8 @@ void Graph::print_distances(vector<DijkstraDistanceStructure*>* priority_queue) 
         cout << "\tParent Edge: ";
 
         if ( parent_edge != nullptr ) {
-            cout << "Connects: " << parent_edge->get_first_end_vertex()->get_name() 
-                 << " and " << parent_edge->get_second_end_vertex()->get_name();
+            cout << "(" << parent_edge->get_first_end_vertex()->get_name() 
+                 << " , " << parent_edge->get_second_end_vertex()->get_name() << ")";
         }
 
         cout << endl;
@@ -311,12 +311,17 @@ void Graph::run_dijkstras_algorithm_for_shortest_path() {
         distance_queue->push_back( updated_vertex->get_distance_structure() );
     }
 
-    cout << "New Distances Queue: " << endl;
+    cout << endl;
+    cout << endl;
+    cout << "############ Solution Tree: ###############" << endl;
     cout << endl;
 
     sort(distance_queue->begin(), distance_queue->end(), distance_ordering());
     this->print_distances(distance_queue);
-
+    cout << endl;
+    cout << "###########################################" << endl;
+    cout << endl;
+    cout << endl;
 
 }
 
