@@ -33,16 +33,16 @@ void print_matrix(int **matrix, int num_rows, int num_columns) {
 
 Graph* create_and_insert_vertices_and_edges(Graph* dataset) {
 
-    Vertex *a1 = new Vertex("A1", 0);
-    Vertex *b1 = new Vertex("B1", 1);
-    Vertex *c1 = new Vertex("C1", 2);
-    Vertex *d1 = new Vertex("D1", 3);
-    Vertex *f1 = new Vertex("F1", 4);
-    Vertex *g1 = new Vertex("G1", 5);
-    Vertex *h1 = new Vertex("H1", 6);
-    Vertex *i1 = new Vertex("I1", 7);
-    Vertex *j1 = new Vertex("J1", 8);
-    Vertex *k1 = new Vertex("K1", 9);
+    Vertex *a1 = new Vertex("A", 0);
+    Vertex *b1 = new Vertex("B", 1);
+    Vertex *c1 = new Vertex("C", 2);
+    Vertex *d1 = new Vertex("D", 3);
+    Vertex *f1 = new Vertex("F", 4);
+    Vertex *g1 = new Vertex("G", 5);
+    Vertex *h1 = new Vertex("H", 6);
+    Vertex *i1 = new Vertex("I", 7);
+    Vertex *j1 = new Vertex("J", 8);
+    Vertex *k1 = new Vertex("K", 9);
 
     dataset->insert_vertex(a1);
     dataset->insert_vertex(b1);
