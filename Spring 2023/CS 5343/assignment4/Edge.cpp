@@ -35,8 +35,8 @@
 
     void Edge::print_edge(){
         cout << "\tEdge " << this->index << " - ";
-        cout << "\tEnd Vertex 1: " << this->first_end_vertex->get_name();
-        cout << "\tEnd Vertex 2: " << this->second_end_vertex->get_name();
-        cout << "\tWeight: "<< this->weight << endl;
+        cout << "\t(" << this->first_end_vertex->get_name();
+        cout << " ," << this->second_end_vertex->get_name();
+        cout << ")\tWeight: "<< this->weight << endl;
     }
     
