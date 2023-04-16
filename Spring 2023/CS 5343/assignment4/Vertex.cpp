@@ -1,5 +1,47 @@
 #include "Vertex.h"
 
+//-----------------------------------------------------
+//##### DIJKSTRA DISTANCE STRUCTURE METHODS START ######
+//-----------------------------------------------------
+
+DijkstraDistanceStructure::DijkstraDistanceStructure(Vertex *vertex_to_be_assigned, int distance){
+    this->vertex = vertex_to_be_assigned;
+    this->distance = distance;
+}
+
+Vertex* DijkstraDistanceStructure::get_vertex(){
+    return this->vertex;
+}
+
+void DijkstraDistanceStructure::set_vertex(Vertex* vertex_to_be_assigned){
+    this->vertex = vertex_to_be_assigned;
+}
+
+int DijkstraDistanceStructure::get_distance(){
+    return this->distance;
+}
+
+void DijkstraDistanceStructure::set_distance(int distance){
+    this->distance = distance;
+}
+
+Edge* DijkstraDistanceStructure::get_parent_edge(){
+    return this->parent_edge;
+}
+
+void DijkstraDistanceStructure::set_parent_edge(Edge* parent_edge_to_be_assigned){
+    this->parent_edge = parent_edge_to_be_assigned;
+}
+
+//-----------------------------------------------------
+//##### DIJKSTRA DISTANCE STRUCTURE METHODS END ######
+//-----------------------------------------------------
+
+//-----------------------------------------------------
+//################# VERTEX METHODS START #################
+//-----------------------------------------------------
+
+
 Vertex::Vertex(string name, int index){
     this->name = name;
     this->index = index;
@@ -53,3 +95,15 @@ vector<Edge*>* Vertex::get_incident_edges(){
 void Vertex::print_vertex(){
     cout << "\t" << this->index << " : " << this->name << endl; 
 }
+
+DijkstraDistanceStructure* Vertex::get_distance_structure() {
+    return this->distance_structure;
+}
+
+void Vertex::set_distance_structure(DijkstraDistanceStructure *distance_structure) {
+    this->distance_structure = distance_structure;
+}
+
+//-----------------------------------------------------
+//################# VERTEX METHODS END #################
+//-----------------------------------------------------

@@ -3,24 +3,9 @@
 
 #include <limits.h>
 #include <queue>
+#include <bits/stdc++.h>
 
 #include "Edge.h"
-
-class DijkstraDistanceStructure{
-private:
-    Vertex *vertex;
-    int distance;
-    Edge *parent_edge;
-
-public:
-    DijkstraDistanceStructure(Vertex *vertex_to_be_assigned, int distance);
-    Vertex* get_vertex();
-    int get_distance();
-    void set_vertex(Vertex* vertex_to_be_assigned);
-    void set_distance(int distance);
-    Edge* get_parent_edge();
-    void set_parent_edge(Edge* parent_edge_to_be_assigned);
-};
 
 class Graph {
 private:
@@ -41,6 +26,7 @@ public:
     void print_edges();
     void print_adjacent_vertices();
     void print_distances(vector<DijkstraDistanceStructure*>* priority_queue);
+    void relax_distances(Vertex *current, vector<DijkstraDistanceStructure*>* priority_queue);
     vector<DijkstraDistanceStructure*>* init_priority_queue();
     void run_dijkstras_algorithm_for_shortest_path();
 

@@ -27,9 +27,9 @@
     
     Vertex* Edge::opposite_vertex(Vertex *curr_vertex){
         if ( this->first_end_vertex == curr_vertex ){
-            return first_end_vertex;
-        } else { 
             return second_end_vertex;
+        } else { 
+            return first_end_vertex;
         }
     }
 

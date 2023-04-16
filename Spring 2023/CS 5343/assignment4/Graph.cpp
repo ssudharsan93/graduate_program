@@ -1,35 +1,5 @@
 #include "Graph.h"
 
-
-DijkstraDistanceStructure::DijkstraDistanceStructure(Vertex *vertex_to_be_assigned, int distance){
-    this->vertex = vertex_to_be_assigned;
-    this->distance = distance;
-}
-
-Vertex* DijkstraDistanceStructure::get_vertex(){
-    return this->vertex;
-}
-
-void DijkstraDistanceStructure::set_vertex(Vertex* vertex_to_be_assigned){
-    this->vertex = vertex_to_be_assigned;
-}
-
-int DijkstraDistanceStructure::get_distance(){
-    return this->distance;
-}
-
-void DijkstraDistanceStructure::set_distance(int distance){
-    this->distance = distance;
-}
-
-Edge* DijkstraDistanceStructure::get_parent_edge(){
-    return this->parent_edge;
-}
-
-void DijkstraDistanceStructure::set_parent_edge(Edge* parent_edge_to_be_assigned){
-    this->parent_edge = parent_edge_to_be_assigned;
-}
-
 //-----------------------------------------------------
 //################# GRAPH METHODS START #################
 //-----------------------------------------------------
@@ -200,15 +170,15 @@ void Graph::print_adjacent_vertices() {
 }
 
 struct distance_ordering {
-    bool ordering(DijkstraDistanceStructure* first, DijkstraDistanceStructure* second) const {
-        if ( first->get_distance() < second->get_distance() ) { return true; }
-        else { return false; }
+    bool operator()(DijkstraDistanceStructure* first, DijkstraDistanceStructure* second) const {
+        return first->get_distance() < second->get_distance();
     }
 };
 
 void Graph::print_distances(vector<DijkstraDistanceStructure*>* priority_queue) {
 
     int PQ_size = priority_queue->size();
+    Edge* parent_edge;
 
     cout << endl;
     cout << "-----Vertex Distances------" << endl;
@@ -216,10 +186,66 @@ void Graph::print_distances(vector<DijkstraDistanceStructure*>* priority_queue) 
         DijkstraDistanceStructure *current_DDS = priority_queue->at(PQ_cntr);
 
         cout << "\tVertex: " << current_DDS->get_vertex()->get_name();
-        cout << "\tCurrent Distance: " << current_DDS->get_distance() << endl;
+        cout << "\tCurrent Distance: " << current_DDS->get_distance();
+
+        parent_edge = current_DDS->get_parent_edge();
+
+        cout << "\tParent Edge: ";
+
+        if ( parent_edge != nullptr ) {
+            cout << "Connects: " << parent_edge->get_first_end_vertex()->get_name() 
+                 << " and " << parent_edge->get_second_end_vertex()->get_name();
+        }
+
+        cout << endl;
     }
     cout << "---------------------------" << endl;
+    cout << endl;
 
+}
+
+void Graph::relax_distances(Vertex* current_vertex, vector<DijkstraDistanceStructure*>* priority_queue){
+
+    vector<Edge*> *incident_edges = current_vertex->get_incident_edges();
+    int num_incident_edges = incident_edges->size();
+    DijkstraDistanceStructure* curr_distance_structure = current_vertex->get_distance_structure();
+    
+    Vertex *opposite_vertex;
+    Edge *current_edge;
+    DijkstraDistanceStructure* opposite_distance_structure;
+
+    int potential_new_distance;
+    int old_distance;
+    
+    for ( int edge_cntr = 0; edge_cntr < num_incident_edges; edge_cntr++ ) {
+        current_edge = incident_edges->at(edge_cntr);
+        opposite_vertex = current_edge->opposite_vertex(current_vertex);
+
+        opposite_distance_structure = opposite_vertex->get_distance_structure();
+
+        if ( find(priority_queue->begin(), priority_queue->end(), opposite_distance_structure) == priority_queue->end() ) {
+            // cout << "No Need to relax " << opposite_vertex->get_name() 
+            //      << ": " << opposite_distance_structure->get_distance() << endl;
+            continue;
+        }
+
+        // else { 
+        //     // cout << "Relaxing... " << opposite_vertex->get_name() 
+        //     //      << ": " << opposite_distance_structure->get_distance() << endl;
+        //     continue;
+        // }
+
+        potential_new_distance = current_edge->get_weight() + curr_distance_structure->get_distance();
+        old_distance = opposite_distance_structure->get_distance();
+
+        if ( potential_new_distance < old_distance && ( potential_new_distance > 0 ) ) {
+            opposite_distance_structure->set_distance(potential_new_distance);
+            opposite_distance_structure->set_parent_edge(current_edge);
+        }
+    }
+
+    sort(priority_queue->begin(), priority_queue->end(), distance_ordering());
+    // this->print_distances(priority_queue);
 }
 
 vector<DijkstraDistanceStructure*>* Graph::init_priority_queue() {
@@ -228,12 +254,19 @@ vector<DijkstraDistanceStructure*>* Graph::init_priority_queue() {
 
     vector<DijkstraDistanceStructure*> *priority_queue = new vector<DijkstraDistanceStructure*>();
 
-    for ( int vertex_cntr = 0; vertex_cntr < num_vertices; vertex_cntr++ ) {
-        if ( vertex_cntr == 0 ) {
-            priority_queue->push_back( new DijkstraDistanceStructure(this->vertices->at(vertex_cntr), 0) );
-        } else { 
-            priority_queue->push_back( new DijkstraDistanceStructure(this->vertices->at(vertex_cntr), INT_MAX ) );
+    Vertex* curr_vertex;
 
+    for ( int vertex_cntr = 0; vertex_cntr < num_vertices; vertex_cntr++ ) {
+        curr_vertex = this->vertices->at(vertex_cntr);
+
+        if ( vertex_cntr == 0 ) {
+            DijkstraDistanceStructure *new_distance_structure = new DijkstraDistanceStructure(curr_vertex, 0);
+            priority_queue->push_back( new_distance_structure );
+            curr_vertex->set_distance_structure(new_distance_structure);
+        } else {
+            DijkstraDistanceStructure *new_distance_structure = new DijkstraDistanceStructure(curr_vertex, INT_MAX);
+            priority_queue->push_back( new_distance_structure );
+            curr_vertex->set_distance_structure(new_distance_structure);
         }
     }
 
@@ -244,15 +277,41 @@ vector<DijkstraDistanceStructure*>* Graph::init_priority_queue() {
 void Graph::run_dijkstras_algorithm_for_shortest_path() {
 
     vector<DijkstraDistanceStructure*> *priority_queue = this->init_priority_queue();
+    vector<DijkstraDistanceStructure*> *distance_queue = new vector<DijkstraDistanceStructure*>();
 
     this->print_distances(priority_queue);
 
-    make_heap(priority_queue->begin(), priority_queue->end(), distance_ordering());
+    //make_heap(priority_queue->begin(), priority_queue->end(), distance_ordering());
+    sort(distance_queue->begin(), distance_queue->end(), distance_ordering());
 
-    // while ( priority_queue.size() != 0 ) {
-    //     priority_queue.front();
-    //     priority_queue.erase();
-    // }
+    Vertex *current_vertex;
+    
+    while ( priority_queue->size() != 0 ) {
+        DijkstraDistanceStructure *current_DDS = priority_queue->front();
+        current_vertex = current_DDS->get_vertex();
+        //cout << "Removing... " << current_vertex->get_name() << endl;
+
+        priority_queue->erase(priority_queue->begin());
+
+        this->relax_distances(current_vertex, priority_queue);
+
+    }
+
+    int num_vertices = this->vertices->size();
+    Vertex* updated_vertex;
+
+    for ( int vertex_cntr = 0; vertex_cntr < num_vertices; vertex_cntr++ ) {
+        updated_vertex = this->vertices->at(vertex_cntr);
+        
+        distance_queue->push_back( updated_vertex->get_distance_structure() );
+    }
+
+    cout << "New Distances Queue: " << endl;
+    cout << endl;
+
+    sort(distance_queue->begin(), distance_queue->end(), distance_ordering());
+    this->print_distances(distance_queue);
+
 
 }
 
