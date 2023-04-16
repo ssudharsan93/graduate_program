@@ -17,7 +17,7 @@ class DijkstraDistanceStructure{
 private:
     Vertex *vertex;
     int distance;
-    Edge *parent_edge = nullptr;
+    Edge *parent_edge = NULL;
 
 public:
     DijkstraDistanceStructure(Vertex *vertex_to_be_assigned, int distance);
