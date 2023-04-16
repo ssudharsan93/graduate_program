@@ -1,7 +1,7 @@
 EXECUTABLE = hw4
 SOURCES = main.cpp Graph.cpp Edge.cpp Vertex.cpp
 CXX = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -std=gnu++11
 OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(EXECUTABLE)

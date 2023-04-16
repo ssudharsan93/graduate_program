@@ -293,16 +293,21 @@ void Graph::run_dijkstras_algorithm_for_shortest_path() {
 
         priority_queue->erase(priority_queue->begin());
 
-        this->relax_distances(current_vertex, priority_queue);
+	if ( priority_queue->size() == 0 ) { 
+	    break; 
+	}
 
+        this->relax_distances(current_vertex, priority_queue);
     }
+
+    delete priority_queue;
 
     int num_vertices = this->vertices->size();
     Vertex* updated_vertex;
 
     for ( int vertex_cntr = 0; vertex_cntr < num_vertices; vertex_cntr++ ) {
         updated_vertex = this->vertices->at(vertex_cntr);
-        
+         
         distance_queue->push_back( updated_vertex->get_distance_structure() );
     }
 
