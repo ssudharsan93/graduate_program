@@ -62,6 +62,26 @@ int Vertex::get_index(){
     return this->index;
 }
 
+int Vertex::get_distance(){
+    return this->distance;
+}
+
+void Vertex::set_distance(int distance){
+    this->distance = distance;
+}
+
+bool Vertex::is_visited(){
+    return this->visited;
+}
+
+void Vertex::set_visited(int distance){
+    this->visited = true;
+}
+
+void Vertex::clear_visited(int distance){
+    this->visited = false;
+}
+
 bool Vertex::is_adjacent(Vertex *vertex_to_check){
     
     int vector_size = this->adjacent_nodes->size();

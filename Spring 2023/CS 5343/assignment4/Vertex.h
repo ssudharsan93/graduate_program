@@ -33,6 +33,9 @@ class Vertex {
 private:
     string name;
     int index;
+    int distance;
+    bool visited;
+    Edge *parent_edge = NULL;
     vector<Vertex*> *adjacent_nodes;
     vector<Edge*> *incident_edges;
     DijkstraDistanceStructure *distance_structure = NULL;
@@ -42,6 +45,11 @@ public:
     ~Vertex();
     string get_name();
     int get_index();
+    int get_distance();
+    void set_distance(int distance);
+    bool is_visited();
+    void set_visited();
+    void clear_visited();
     bool is_adjacent(Vertex *vertex_to_check);
     void add_adjacent_node(Vertex* adjacent_node);
     void add_incident_edge(Edge* incident_edge);
