@@ -1,0 +1,23 @@
+This folder contains a
+  -Makefile
+  -main.cpp source file
+  -DirectedGraph.cpp source file
+  -DirectedVertex.cpp source file
+  -DirectedEdge.cpp source file
+  -DirectedGraph.h header file
+  -DirectedVertex.h header file
+  -DirectedEdge.h header file
+
+In order to compile the files in this folder,
+and create executables, you simply run the
+`make` command on the command line. `make clean`
+will get rid of executables and object files.
+
+In order to run the executable file
+'hw4' simply run `./hw4` 
+on the command line to run Dijkstra's
+shortest path algorithm.
+
+If you prefer not to compile, the executable file
+`hw4` is provided for you. To run it, simply run `./hw4`
+from the folder you copy it into.
