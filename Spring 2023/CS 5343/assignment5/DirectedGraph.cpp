@@ -210,6 +210,142 @@ void DirectedGraph::print_adjacent_vertices() {
     cout << endl;
 }
 
+// int dfs_label_vertex(Vertex* curr_vertex, int label){
+
+//     curr_vertex->set_visited();
+//     vector<DirectedEdge*> *outgoing_edges = curr_vertex->get_outgoing_edges();
+//     int num_outgoing_edges = outgoing_edges->size();
+
+//     DirectedEdge *curr_edge;
+//     Vertex *opposite_vertex;
+
+//     for ( int out_edge_cntr = 0; out_edge_cntr < num_outgoing_edges; out_edge_cntr++ ){
+//         curr_edge = outgoing_edges->at(out_edge_cntr);
+//         opposite_vertex = curr_edge->opposite_vertex(curr_vertex);
+//         if ( ! ( opposite_vertex->is_visited() ) ) {
+//             label = dfs_label_vertex(opposite_vertex, label);
+//         }
+//     }
+
+//     //cout << "Label to be assigned: " << label << endl;
+//     curr_vertex->set_label(label);
+
+//     return label - 1;
+// }
+
+int DirectedGraph::dfs_label_vertex(Vertex* curr_vertex, int label){
+
+    curr_vertex->set_visited();
+    vector<DirectedEdge*> *outgoing_edges = curr_vertex->get_outgoing_edges();
+    int num_outgoing_edges = outgoing_edges->size();
+
+    DirectedEdge *curr_edge;
+    Vertex *opposite_vertex;
+
+    for ( int out_edge_cntr = 0; out_edge_cntr < num_outgoing_edges; out_edge_cntr++ ){
+        curr_edge = outgoing_edges->at(out_edge_cntr);
+        opposite_vertex = curr_edge->opposite_vertex(curr_vertex);
+        if ( ! ( opposite_vertex->is_visited() ) ) {
+            label = this->dfs_label_vertex(opposite_vertex, label);
+        }
+    }
+
+    curr_vertex->set_label(label);
+
+    return label - 1;
+}
+
+void DirectedGraph::dfs_topological_sort(){
+    int num_vertices = this->vertices->size();
+    int label = num_vertices;
+    Vertex *curr_vertex;
+
+    for( int clr_vertex_cntr = 0; clr_vertex_cntr < num_vertices; clr_vertex_cntr++ ){
+        this->vertices->at(clr_vertex_cntr)->reset_label();
+        this->vertices->at(clr_vertex_cntr)->clear_visited();
+    }
+    
+    for( int dfs_vertex_cntr = 0; dfs_vertex_cntr < num_vertices; dfs_vertex_cntr++ ){
+        curr_vertex = this->vertices->at(dfs_vertex_cntr);
+        if ( ! ( curr_vertex->is_visited() ) ) {
+            label = this->dfs_label_vertex(curr_vertex, label);
+        }
+    }
+    
+}
+
+void DirectedGraph::bfs_topological_sort(){
+    
+    int label = 0;
+    int num_vertices = this->vertices->size();
+    int *pred_count = new int[num_vertices];
+    
+    int index, num_incoming_edges, num_outgoing_edges;
+    Vertex *curr_vertex, *opposite_vertex;
+    DirectedEdge *curr_outgoing_edge;
+    vector<DirectedEdge*> *outgoing_edges;
+    
+    queue<Vertex*> *no_predecessors = new queue<Vertex*>();
+
+    for( int pred_set_cntr = 0; pred_set_cntr < num_vertices; pred_set_cntr++ ){
+        curr_vertex = this->vertices->at(pred_set_cntr);
+        num_incoming_edges = curr_vertex->get_incoming_edges()->size();
+
+        curr_vertex->reset_label();
+        pred_count[pred_set_cntr] = num_incoming_edges;
+
+        if ( num_incoming_edges == 0 ){
+            no_predecessors->push(curr_vertex);
+            //cout << "Adding " << curr_vertex->get_name() << " ..." << endl;
+        }
+    }
+
+    // cout << "\t [ ";
+    // for( int pred_vertex_cntr = 0; pred_vertex_cntr < num_vertices; pred_vertex_cntr++ ){
+    //     cout << pred_count[pred_vertex_cntr] << " ";
+    // }
+
+    // cout << "]" << endl;
+
+    while ( no_predecessors->size() != 0 ){
+        curr_vertex = no_predecessors->front();
+        //cout << "Removing " << curr_vertex->get_name() << " ..." << endl;
+        curr_vertex->set_label(label);
+        label = label + 1;
+        no_predecessors->pop();
+        outgoing_edges = curr_vertex->get_outgoing_edges();
+        num_outgoing_edges = outgoing_edges->size();
+
+        for ( int update_cntr = 0; update_cntr < num_outgoing_edges; update_cntr++ ){
+            curr_outgoing_edge = outgoing_edges->at(update_cntr);
+            opposite_vertex = curr_outgoing_edge->opposite_vertex(curr_vertex);
+            index = opposite_vertex->get_index();
+
+            pred_count[index] = pred_count[index] - 1;
+            // cout << "Decreasing count for " << opposite_vertex->get_name() 
+            //      << " to " << pred_count[index] << " ..." << endl;
+
+            if ( pred_count[index] == 0 ){
+                no_predecessors->push(opposite_vertex);
+                //cout << "Adding " << opposite_vertex->get_name() << " ..." << endl;
+            }
+        }
+
+    }
+
+
+    // cout << "\t [ ";
+    // for( int pred_vertex_cntr = 0; pred_vertex_cntr < num_vertices; pred_vertex_cntr++ ){
+    //     cout << pred_count[pred_vertex_cntr] << " ";
+    // }
+    // cout << "]" << endl;
+
+    delete no_predecessors;
+
+
+}
+
+
 //-----------------------------------------------------
 //################# GRAPH METHODS END #################
 //-----------------------------------------------------

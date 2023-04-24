@@ -2,8 +2,57 @@
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
 #include "DirectedGraph.h"
+
+struct label_ordering {
+    bool operator()(Vertex *first, Vertex *second) const {
+        return first->get_label() < second->get_label();
+    }
+};
+
+void print_solution(DirectedGraph* dataset, int index){
+    cout << endl;
+    cout << "---------------------------------" << endl;
+    cout << "       Solution for Dataset " << index << endl;
+    cout << "---------------------------------" << endl;
+
+    vector<Vertex*> *graph_vertices = new vector<Vertex*>() ;
+    vector<Vertex*> *curr_vertices = dataset->get_vertices();
+
+    int num_vertices = curr_vertices->size();
+
+    for ( int cpy_vertex_cntr = 0; cpy_vertex_cntr < num_vertices; cpy_vertex_cntr++ ){
+        graph_vertices->push_back(curr_vertices->at(cpy_vertex_cntr));
+    }
+
+    sort(graph_vertices->begin(), graph_vertices->end(), label_ordering());
+
+    Vertex* curr_vertex;
+
+    for ( int vertex_cntr = 0; vertex_cntr < num_vertices; vertex_cntr++ ){
+        curr_vertex = graph_vertices->at(vertex_cntr);
+
+        cout << "\tVertex: " << curr_vertex->get_name() 
+             << " Order: " << curr_vertex->get_label() << endl;
+    }
+
+    cout << endl;
+    cout << "Ordering: ";
+    for ( int print_order_cntr = 0; print_order_cntr < num_vertices; print_order_cntr++ ){
+        curr_vertex = graph_vertices->at(print_order_cntr);
+
+        if ( curr_vertex->get_label() == -1 ) { continue; }
+        cout << curr_vertex->get_name() << " ";
+    }
+    cout << endl;
+
+
+    cout << endl;
+    cout << "---------------------------------" << endl;
+    cout << endl;
+}
 
 void print_matrix(int **matrix, int num_rows, int num_columns) {
 
@@ -238,6 +287,36 @@ void run_test() {
 
     print_dataset(dataset, 1);
     print_dataset(dataset2, 2);
+
+    cout << endl;
+    cout << endl;
+    cout << endl;
+    cout << "#################################" << endl;
+    cout << "  DFS Topological Sort " << endl;
+    cout << "#################################" << endl;
+
+    dataset->dfs_topological_sort();
+    dataset2->dfs_topological_sort();
+
+    print_solution(dataset, 1);
+    print_solution(dataset2, 2);
+
+    cout << "#################################" << endl;
+    cout << endl;
+
+    cout << endl;
+    cout << "#################################" << endl;
+    cout << "  BFS Topological Sort " << endl;
+    cout << "#################################" << endl;
+
+    dataset->bfs_topological_sort();
+    dataset2->bfs_topological_sort();
+
+    print_solution(dataset, 1);
+    print_solution(dataset2, 2);
+
+    cout << "#################################" << endl;
+    cout << endl;
     
 }
 

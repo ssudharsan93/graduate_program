@@ -7,6 +7,7 @@
 
 #include "DirectedEdge.h"
 
+
 class DirectedGraph {
 private:
     vector<Vertex*> *vertices;
@@ -28,8 +29,9 @@ public:
     void print_adjacent_vertices();
     void print_distances(vector<DijkstraDistanceStructure*>* priority_queue);
     void relax_distances(Vertex *current, vector<DijkstraDistanceStructure*>* priority_queue);
-    vector<DijkstraDistanceStructure*>* init_priority_queue();
-    void run_dijkstras_algorithm_for_shortest_path();
+    int dfs_label_vertex(Vertex* curr_vertex, int label);
+    void dfs_topological_sort();
+    void bfs_topological_sort();
 
 };
 

@@ -34,7 +34,8 @@ private:
     string name;
     int index;
     int distance;
-    bool visited;
+    int label = -1;
+    bool visited = false;
     DirectedEdge *parent_edge = NULL;
     vector<Vertex*> *adjacent_nodes;
     vector<DirectedEdge*> *incoming_edges;
@@ -48,6 +49,9 @@ public:
     int get_index();
     int get_distance();
     void set_distance(int distance);
+    int get_label();
+    void set_label(int label);
+    void reset_label();
     bool is_visited();
     void set_visited();
     void clear_visited();

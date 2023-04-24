@@ -72,6 +72,18 @@ void Vertex::set_distance(int distance){
     this->distance = distance;
 }
 
+int Vertex::get_label(){
+    return this->label;
+}
+
+void Vertex::set_label(int label){
+    this->label = label;
+}
+
+void Vertex::reset_label(){
+    this->label = -1;
+}
+
 bool Vertex::is_visited(){
     return this->visited;
 }
