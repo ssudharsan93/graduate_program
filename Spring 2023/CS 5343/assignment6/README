@@ -8,7 +8,7 @@ This folder contains a
 In order to compile the files in this folder,
 and create executables, you simply run the
 `make` command on the command line. `make clean`
-will get rid of executables and source files.
+will get rid of executables and object files.
 
 In order to run the executable file
 'hw6' simply run `./hw6` on the command
