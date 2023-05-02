@@ -22,14 +22,14 @@ void HashTable::insert_element(string new_elem){
         this->table[hash_val] = new_elem;
     
     } else {
-
         cout << endl;
+        cout << "Attemping to Insert: '" << new_elem << "' at -> " << hash_val << endl;
         cout << "Collision occurred. Need to Resolve." << endl;
         this->increment_num_collisions();
         hash_val = this->get_collision_resolution_index(hash_val);
-        cout<< endl;
+        cout << endl;
 
-        cout << "Inserting: '" << new_elem << "' at Resolved val -> " << hash_val << endl;
+        cout << "Inserting: '" << new_elem << "' at Resolved index -> " << hash_val << endl;
         this->table[hash_val] = new_elem;
     }
 }
@@ -119,9 +119,10 @@ int HashTable::get_collision_resolution_index(int current_hash_val) {
     int offset = 1;
 
     while ( this->table[resolved_hash_val] != "" ){
-        resolved_hash_val = ( current_hash_val + ( offset^2 ) ) % this->get_size();
+        resolved_hash_val = ( current_hash_val + ( offset * offset ) ) % this->get_size();
         
         if ( this->table[resolved_hash_val] != "" ){
+            cout << "Potential New Hash Index: " << resolved_hash_val << endl;
             cout << "Collision reoccurred. Need to Resolve." << endl;
             this->increment_num_collisions();
         }

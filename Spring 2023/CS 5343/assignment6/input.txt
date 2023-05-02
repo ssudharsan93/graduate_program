@@ -1,6 +1,6 @@
 alpha
 omega
-gamma
+beta
 Jupiter
 Mars
 Saturn
@@ -8,13 +8,13 @@ Pluto
 Earth
 Venus
 Mercury
-tyrant
-venom
-spice
-branch
-diamond
+rock
+flag
+eagle
+big dog
+fast cat
 watch
 zero
-lily pad
-eagle
+comet
+silk
 folk
