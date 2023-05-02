@@ -46,7 +46,7 @@ void HashTable::rehash(){
     int old_table_size = this->get_size();
     int new_table_size = this->get_next_table_size();
     cout << "New Hash Size Will Be: " << new_table_size << endl;
-
+    
     string* old_table = this->table;
     string* new_table = new string[new_table_size]();
     
@@ -60,7 +60,6 @@ void HashTable::rehash(){
         else { this->insert_element(elem_to_relocate); }
     }
 
-    //delete old_table;
 }
 
 int HashTable::get_hash(string key){

@@ -15,6 +15,6 @@ branch
 diamond
 watch
 zero
-comet
+lily pad
 eagle
 folk
