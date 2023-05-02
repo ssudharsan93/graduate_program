@@ -1,18 +1,18 @@
 This folder contains a
   -Makefile
-  -hw1_bubble_sort.cpp source file
-  -hw1_ternary_search.cpp source file
-  -ListNode.cpp source file
-  -ListNode.h header file
+  -main.cpp
+  -HashTable.cpp source file
+  -HashTable.h header file
+  -input.txt input file
 
 In order to compile the files in this folder,
 and create executables, you simply run the
 `make` command on the command line. `make clean`
 will get rid of executables and source files.
 
-In order to run the 2 executable files
-'hw1_bubble_sort' and 'hw1_ternary_search'
-simply run `./hw1_bubble_sort` on the command
-line to run the linked list bubble sort algorithm
-and simply run `./hw1_ternary_search` on the command
-line to run the ternary search algorithm.
+In order to run the executable file
+'hw6' simply run `./hw6` on the command
+line to run insert elements into the HashTable.
+The program reads 20 words from the `input.txt` file.
+You may change the words in the input.txt file to try
+to stress the program in different ways.
