@@ -12,7 +12,9 @@ will get rid of executables and source files.
 
 In order to run the executable file
 'hw6' simply run `./hw6` on the command
-line to run insert elements into the HashTable.
+line to insert elements into the HashTable.
 The program reads 20 words from the `input.txt` file.
 You may change the words in the input.txt file to try
-to stress the program in different ways.
+to stress the program in different ways. Ensure the 
+input is of length 3 at the minimum and 8 at the 
+maximum and contains characters a-zA-Z and spaces only.
