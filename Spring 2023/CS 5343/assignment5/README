@@ -14,10 +14,10 @@ and create executables, you simply run the
 will get rid of executables and object files.
 
 In order to run the executable file
-'hw4' simply run `./hw4` 
-on the command line to run Dijkstra's
-shortest path algorithm.
+'hw5' simply run `./hw5` 
+on the command line to run the two 
+topological sort algorithms (DFS and BFS).
 
 If you prefer not to compile, the executable file
-`hw4` is provided for you. To run it, simply run `./hw4`
+`hw5` is provided for you. To run it, simply run `./hw5`
 from the folder you copy it into.

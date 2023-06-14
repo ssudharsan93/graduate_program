@@ -23,3 +23,6 @@ Vertex.o: Vertex.cpp Vertex.h
 
 clean:
 	rm -f ${EXECUTABLE} $(OBJECTS)
+
+clnobj:
+	rm -f $(OBJECTS)
