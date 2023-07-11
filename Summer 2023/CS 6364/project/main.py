@@ -126,11 +126,41 @@ def GenerateAdd(my_board_positions):
                 L.append(b)
     return L
 
+def GenerateHopping(my_board_positions):
+    L = list()
+    for alpha in range(0,21):
+        if my_board_positions[alpha] == "W":
+            for beta in range(0,21):
+                if my_board_positions[beta] == "x":
+                    b = list(my_board_positions)
+                    b[alpha] = "x"
+                    b[beta] = "W"
+                    if ( closeMill(BOARD_MAP_INDEX_TO_POS[beta], b) ):
+                        GenerateRemove(b, L)
+                    else:
+                        L.append(b)
+    return L
+
+def GenerateMove(my_board_positions):
+    L = list()
+    for board_index in range(0,21):
+        if my_board_positions[board_index] == "W":
+            n = neighbors[board_index]
+            for neighbor in n:
+                neighbor_index = BOARD_MAP_POS_TO_INDEX[neighbor]
+                if my_board_positions[neighbor_index] == "x":
+                    b = list(my_board_positions)
+                    b[board_index] = "x"
+                    b[neighbor_index] = "W"
+                    if ( closeMill(BOARD_MAP_INDEX_TO_POS[neighbor_index], b) ):
+                        GenerateRemove(b, L)
+                    else:
+                        L.append(b)
+    return L
+
 def GenerateRemove(my_board_positions, L):
     for board_index in range(0,21):
         if my_board_positions[board_index] == "B":
-            b = list(my_board_positions)
-            b[board_index] = "B"
             if ( not closeMill(BOARD_MAP_INDEX_TO_POS[board_index], my_board_positions) ):
                 b = list(my_board_positions)
                 b[board_index] = "x"
@@ -168,9 +198,6 @@ def print_board_positions(input_board_positions):
 
 def GenerateMovesMidgameEndgame():
     print("Moves Midgame Endgame")
-
-def GenerateHopping():
-    print("Generating Hopping")
 
 def main():
     print("Running")
