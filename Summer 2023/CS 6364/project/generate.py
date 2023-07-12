@@ -101,12 +101,18 @@ def neighbors(index):
 
 def closeMill(board_position, input_board_position):
     piece_type = input_board_position[BOARD_MAP_POS_TO_INDEX[board_position]]
+    close_mills_exists = list()
+    
     for close_mill_inst in CLOSE_MILL_PARTICIPATION[board_position]:
         for neighbor_board_pos in close_mill_inst:
+            same_piece_type = list()
             neighbor_piece_type = input_board_position[ BOARD_MAP_POS_TO_INDEX[neighbor_board_pos] ]
-            if ( neighbor_piece_type!= piece_type ):
-                return False
-        return True
+            if ( neighbor_piece_type != piece_type ):
+                same_piece_type.append(False)
+        
+        close_mills_exists.append(all(same_piece_type))
+    
+    return any(close_mills_exists)
     
 def GenerateMovesOpening(input_board_position):
     return GenerateAdd(input_board_position)

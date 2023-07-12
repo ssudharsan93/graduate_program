@@ -1,7 +1,7 @@
 from mvg_helper import *
 
 DEBUG = False
-RECURSE_DEBUG = True
+RECURSE_DEBUG = False
 
 def main():
     args = argument_parser_helper()
@@ -11,37 +11,51 @@ def main():
 
     #write_board_position_to_file(args[1], flipped_bp)
 
-    final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmOpening([bp], 0, depth)
+    #final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmOpening([bp], 0, depth)
 
-    print_final_static_estimation_data(
-        final_static_estimation, 
-        desirable_move, 
-        static_estimation_count
-    )
+    # print_final_static_estimation_data(
+    #     final_static_estimation, 
+    #     desirable_move, 
+    #     static_estimation_count
+    # )
 
 def MinMaxAlgorithmOpening(L, level, max_depth):
     static_est_count = None
 
     if ( RECURSE_DEBUG ):
-        if ( level == 7 ):
-            print("\n")
-            print(
-                "\tLevel: " + str(level) 
-                + "\tSize of Nodes to Calculate for: " 
-                + str(len(L))
-            )
-            print(
-                "Evaluating: " + 
-                str(L)
-            )
+        print("\n")
+        print(
+            "\tLevel: " + str(level) 
+            + "\tSize of Nodes to Calculate for: " 
+            + str(len(L))
+        )
+        print(
+            "Evaluating: " + 
+            str(L)
+        )
 
 
-    if ( level ==  max_depth ):
+    if ( level == max_depth ):
         static_est_count = 0
-        return determine_static_est_data(L, None, level, static_est_count)
-    
+        static_estimations = [ static_est_opening(bp) for bp in L ]
+
+        if ( ( level % 2 ) == 1 ): #Min Level
+            max_est = max(static_estimations)
+            return ( 
+                    max_est, 
+                    L[static_estimations.index(max_est)], 
+                    static_est_count + len(static_estimations) 
+            )
+        else: #Max Level
+            min_est = min(static_estimations)
+            return ( 
+                    min_est, 
+                    L[static_estimations.index(min_est)], 
+                    static_est_count + len(static_estimations)
+            )
+        
     else:
-        static_estimations = list()
+        best_static_estimations = list()
         desirable_move = None
                 
         for bp in L:
@@ -58,7 +72,7 @@ def MinMaxAlgorithmOpening(L, level, max_depth):
             best_propagated_static_est, desirable_move, static_est_count =\
                 MinMaxAlgorithmOpening(potential_moves, level + 1, max_depth)
         
-            static_estimations.append(best_propagated_static_est)
+            best_static_estimations.append(best_propagated_static_est)
 
             if ( DEBUG ):
                 print("\n")
@@ -76,7 +90,20 @@ def MinMaxAlgorithmOpening(L, level, max_depth):
                 static_est_count
             )
         else:
-            return determine_static_est_data(L, static_estimations, level, static_est_count)
+            if ( ( level % 2 ) == 1 ): #Min Level
+                max_est = max(best_static_estimations)
+                return ( 
+                        max_est, 
+                        L[best_static_estimations.index(max_est)], 
+                        static_est_count + len(best_static_estimations) 
+                )
+            else: #Max Level
+                min_est = min(best_static_estimations)
+                return ( 
+                        min_est, 
+                        L[best_static_estimations.index(min_est)], 
+                        static_est_count + len(best_static_estimations)
+                )
     
     
 def determine_static_est_data(L, static_estimations, level, static_est_count):
