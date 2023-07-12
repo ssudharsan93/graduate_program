@@ -101,6 +101,9 @@ def neighbors(index):
 
 def closeMill(board_position, input_board_position):
     piece_type = input_board_position[BOARD_MAP_POS_TO_INDEX[board_position]]
+    if piece_type == "x":
+        return False
+
     close_mills_exists = list()
     
     for close_mill_inst in CLOSE_MILL_PARTICIPATION[board_position]:
@@ -247,5 +250,11 @@ def static_est_midgame_endgame(input_board_position):
 def static_est_opening(input_board_positions):
     return ( num_white_pieces(input_board_positions) - 
             num_black_pieces(input_board_positions) )
+
+def personal_static_est_midgame_endgame(input_board_position):
+    return 0
+
+def personal_static_est_opening(input_board_positions):
+    return 0
 
 # Static Estimation Functions End
