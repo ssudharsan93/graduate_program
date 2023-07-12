@@ -1,3 +1,4 @@
+DEBUG = False
 
 BOARD_MAP_INDEX_TO_POS = [
     "a0",
@@ -118,6 +119,11 @@ def GenerateMovesMidgameEndgame(input_board_position):
     
 def GenerateAdd(input_board_position):
     L = list()
+
+    if DEBUG:
+        print("Entered Generate Add. \n")
+        print("Adding to: " + convert_board_position_to_string(input_board_position))
+    
     for board_index in range(0,21):
         if input_board_position[board_index] == "x":
             b = list(input_board_position)
@@ -147,7 +153,7 @@ def GenerateMove(input_board_position):
     L = list()
     for board_index in range(0,21):
         if input_board_position[board_index] == "W":
-            n = neighbors[board_index]
+            n = neighbors(board_index)
             for neighbor in n:
                 neighbor_index = BOARD_MAP_POS_TO_INDEX[neighbor]
                 if input_board_position[neighbor_index] == "x":
@@ -161,12 +167,24 @@ def GenerateMove(input_board_position):
     return L
 
 def GenerateRemove(input_board_position, L):
+    
+    # if DEBUG:
+    #     print("Entered Generate Remove. \n")
+    #     print("Removing for: " + convert_board_position_to_string(input_board_position))
+    
+    removed_black_pieces_L = list()
     for board_index in range(0,21):
         if input_board_position[board_index] == "B":
             if ( not closeMill(BOARD_MAP_INDEX_TO_POS[board_index], input_board_position) ):
                 b = list(input_board_position)
                 b[board_index] = "x"
-                L.append(b)
+                removed_black_pieces_L.append(b)
+    
+    if ( len(removed_black_pieces_L) == 0 ):
+        L.append(list(input_board_position))
+    else:
+        L += removed_black_pieces_L
+    
     return L
 
 def num_black_pieces(input_board_position):
@@ -191,6 +209,15 @@ def flip_board_position(input_board_position):
         else:
             flipped_board.append("x")  
     return flipped_board
+
+def convert_board_position_to_string(bp):
+    bp_str = str()
+    for board_location in bp:
+        bp_str += board_location
+    return bp_str
+
+def convert_board_position_string_to_position(bp_str):
+    return [ x for x in bp_str ]
         
     
 # Static Estimation Functions Begin

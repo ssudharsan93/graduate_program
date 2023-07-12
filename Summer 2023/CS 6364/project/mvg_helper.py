@@ -23,15 +23,6 @@ def write_board_position_to_file(fname, bp):
         bp_str = convert_board_position_to_string(bp)
         bpfile.write(bp_str)
 
-def convert_board_position_to_string(bp):
-    bp_str = str()
-    for board_location in bp:
-        bp_str += board_location
-    return bp_str
-
-def convert_board_position_string_to_position(bp_str):
-    return [ x for x in bp_str ]
-
 
 def debug_print_board_mappings():
     for board_index in range(0,21):
