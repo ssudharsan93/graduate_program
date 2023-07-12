@@ -11,13 +11,13 @@ def main():
 
     #write_board_position_to_file(args[1], flipped_bp)
 
-    #final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmOpening([bp], 0, depth)
+    final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmOpening([bp], 0, depth)
 
-    # print_final_static_estimation_data(
-    #     final_static_estimation, 
-    #     desirable_move, 
-    #     static_estimation_count
-    # )
+    print_final_static_estimation_data(
+        final_static_estimation, 
+        desirable_move, 
+        static_estimation_count
+    )
 
 def MinMaxAlgorithmOpening(L, level, max_depth):
     static_est_count = None
