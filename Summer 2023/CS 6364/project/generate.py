@@ -1,6 +1,3 @@
-#import numpy
-
-DEBUG = False
 
 BOARD_MAP_INDEX_TO_POS = [
     "a0",
@@ -98,27 +95,32 @@ CLOSE_MILL_PARTICIPATION = {
     "g6" : [ ["g0", "g3"], ["a6", "d6"] ]
 }
 
-
 def neighbors(index):
     return NEIGHBORS[BOARD_MAP_INDEX_TO_POS[index]]
 
-def closeMill(board_position, my_board_positions):
-    piece_type = my_board_positions[BOARD_MAP_POS_TO_INDEX[board_position]]
+def closeMill(board_position, input_board_position):
+    piece_type = input_board_position[BOARD_MAP_POS_TO_INDEX[board_position]]
     for close_mill_inst in CLOSE_MILL_PARTICIPATION[board_position]:
         for neighbor_board_pos in close_mill_inst:
-            neighbor_piece_type = my_board_positions( BOARD_MAP_POS_TO_INDEX[neighbor_board_pos] )
+            neighbor_piece_type = input_board_position[ BOARD_MAP_POS_TO_INDEX[neighbor_board_pos] ]
             if ( neighbor_piece_type!= piece_type ):
                 return False
         return True
     
-def GenerateMovesOpening(input_board_positions):
-    return GenerateAdd(input_board_positions)
+def GenerateMovesOpening(input_board_position):
+    return GenerateAdd(input_board_position)
+
+def GenerateMovesMidgameEndgame(input_board_position):
+    if ( num_white_pieces(input_board_position) ):
+        return GenerateHopping(input_board_position)
+    else:
+        return GenerateMove(input_board_position)
     
-def GenerateAdd(my_board_positions):
+def GenerateAdd(input_board_position):
     L = list()
     for board_index in range(0,21):
-        if my_board_positions[board_index] == "x":
-            b = list(my_board_positions)
+        if input_board_position[board_index] == "x":
+            b = list(input_board_position)
             b[board_index] = "W"
             if ( closeMill(BOARD_MAP_INDEX_TO_POS[board_index], b) ):
                 GenerateRemove(b, L)
@@ -126,13 +128,13 @@ def GenerateAdd(my_board_positions):
                 L.append(b)
     return L
 
-def GenerateHopping(my_board_positions):
+def GenerateHopping(input_board_position):
     L = list()
     for alpha in range(0,21):
-        if my_board_positions[alpha] == "W":
+        if input_board_position[alpha] == "W":
             for beta in range(0,21):
-                if my_board_positions[beta] == "x":
-                    b = list(my_board_positions)
+                if input_board_position[beta] == "x":
+                    b = list(input_board_position)
                     b[alpha] = "x"
                     b[beta] = "W"
                     if ( closeMill(BOARD_MAP_INDEX_TO_POS[beta], b) ):
@@ -141,15 +143,15 @@ def GenerateHopping(my_board_positions):
                         L.append(b)
     return L
 
-def GenerateMove(my_board_positions):
+def GenerateMove(input_board_position):
     L = list()
     for board_index in range(0,21):
-        if my_board_positions[board_index] == "W":
+        if input_board_position[board_index] == "W":
             n = neighbors[board_index]
             for neighbor in n:
                 neighbor_index = BOARD_MAP_POS_TO_INDEX[neighbor]
-                if my_board_positions[neighbor_index] == "x":
-                    b = list(my_board_positions)
+                if input_board_position[neighbor_index] == "x":
+                    b = list(input_board_position)
                     b[board_index] = "x"
                     b[neighbor_index] = "W"
                     if ( closeMill(BOARD_MAP_INDEX_TO_POS[neighbor_index], b) ):
@@ -158,73 +160,57 @@ def GenerateMove(my_board_positions):
                         L.append(b)
     return L
 
-def GenerateRemove(my_board_positions, L):
+def GenerateRemove(input_board_position, L):
     for board_index in range(0,21):
-        if my_board_positions[board_index] == "B":
-            if ( not closeMill(BOARD_MAP_INDEX_TO_POS[board_index], my_board_positions) ):
-                b = list(my_board_positions)
+        if input_board_position[board_index] == "B":
+            if ( not closeMill(BOARD_MAP_INDEX_TO_POS[board_index], input_board_position) ):
+                b = list(input_board_position)
                 b[board_index] = "x"
                 L.append(b)
     return L
 
-def num_black_pieces(my_board_positions):
-    return sum([ 1 if x == 'B' else 0 for x in my_board_positions ])
+def num_black_pieces(input_board_position):
+    return sum([ 1 if x == 'B' else 0 for x in input_board_position ])
 
-def num_white_pieces(my_board_positions):
-    return sum([ 1 if x == 'W' else 0 for x in my_board_positions ])
-    
-    # Static Estimation Functions Begin
-    
-def static_est_midgame_endgame(my_board_positions):
-    if ( num_black_pieces(my_board_positions) <= 2 ):
-        return 10000
-    elif ( num_white_pieces(my_board_positions) <= 2 ):
-        return (-10000)
-    # elif ( numBlackMoves === 0 ):
-    #     return 10000 
-    # else:
-    #     return 1000 * ( self.num_white_pieces - self.num_black_pieces ) - numBlackMoves
-
-def static_est_opening(self):
-    return ( self.num_white_pieces - self.num_black_pieces )
-
-# Static Estimation Functions End
+def num_white_pieces(input_board_position):
+    return sum([ 1 if x == 'W' else 0 for x in input_board_position ])
 
 def get_participating_close_mill(board_position):
     return CLOSE_MILL_PARTICIPATION[board_position]
 
-def print_board_positions(input_board_positions):
-    print(input_board_positions)
+def print_board_positions(input_board_position):
+    print(input_board_position)
 
-def GenerateMovesMidgameEndgame():
-    print("Moves Midgame Endgame")
+def flip_board_position(input_board_position):
+    flipped_board = list()
+    for x in input_board_position:
+        if ( x == "B" ):
+            flipped_board.append("W")         
+        elif ( x == "W" ):
+            flipped_board.append("B")     
+        else:
+            flipped_board.append("x")  
+    return flipped_board
+        
+    
+# Static Estimation Functions Begin
+    
+def static_est_midgame_endgame(input_board_position):
+    black_board = flip_board_position(input_board_position)
+    numBlackMoves = len(GenerateMove(black_board))
 
-def main():
-    print("Running")
-    game_board = [ "x" for i in range(0,21) ]
-    print_board_positions(game_board)
+    if ( num_black_pieces(input_board_position) <= 2 ):
+        return 10000
+    elif ( num_white_pieces(input_board_position) <= 2 ):
+        return (-10000)
+    elif ( numBlackMoves == 0 ):
+        return 10000 
+    else:
+        return 1000 * ( num_white_pieces(input_board_position) - 
+                        num_black_pieces(input_board_position) ) - numBlackMoves
 
-    if ( DEBUG ):
-        for board_index in range(0,21):
-            pos_neighbors = neighbors(board_index)
-            print("\n")
+def static_est_opening(input_board_positions):
+    return ( num_white_pieces(input_board_positions) - 
+            num_black_pieces(input_board_positions) )
 
-            print(
-                "Index : " + str(board_index) + 
-                "\nBoard Position: " + BOARD_MAP_INDEX_TO_POS[board_index] + 
-                "\nNeighbors: " + str(pos_neighbors) + 
-                "\nNeighbor Indices: " + str([BOARD_MAP_POS_TO_INDEX[x] for x in pos_neighbors])
-            )
-
-        for i in range(0,21):
-            print(
-                "\nIndex : " + str(i) + 
-                "\nBoard Position: " + BOARD_MAP_INDEX_TO_POS[board_index] + 
-                "\nClose Mills the Position Participates in:" + 
-                "\n" + str(get_participating_close_mill(BOARD_MAP_INDEX_TO_POS[board_index]))
-            )
-
-    print("Number of Black Pieces: " + str(num_black_pieces(game_board)))
-    print("Number of White Pieces: " + str(num_white_pieces(game_board)))
-
-main()
+# Static Estimation Functions End
