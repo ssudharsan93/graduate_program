@@ -104,11 +104,13 @@ def closeMill(board_position, input_board_position):
     close_mills_exists = list()
     
     for close_mill_inst in CLOSE_MILL_PARTICIPATION[board_position]:
+        same_piece_type = list()
         for neighbor_board_pos in close_mill_inst:
-            same_piece_type = list()
             neighbor_piece_type = input_board_position[ BOARD_MAP_POS_TO_INDEX[neighbor_board_pos] ]
             if ( neighbor_piece_type != piece_type ):
                 same_piece_type.append(False)
+            else:
+                same_piece_type.append(True)
         
         close_mills_exists.append(all(same_piece_type))
     
