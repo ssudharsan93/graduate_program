@@ -120,7 +120,7 @@ def GenerateMovesOpening(input_board_position):
     return GenerateAdd(input_board_position)
 
 def GenerateMovesMidgameEndgame(input_board_position):
-    if ( num_white_pieces(input_board_position) ):
+    if ( num_white_pieces(input_board_position) == 3 ):
         return GenerateHopping(input_board_position)
     else:
         return GenerateMove(input_board_position)
