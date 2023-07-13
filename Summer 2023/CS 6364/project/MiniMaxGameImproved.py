@@ -28,8 +28,9 @@ def GenerateMovesMidgameEndgameBlack(bp):
 def MinMaxAlgorithmGame(bp, level, max_depth):
     L = GenerateMovesMidgameEndgame(bp)
     static_estimates, static_est_count = MaxMin(L, level, max_depth)
+    max_est = max(static_estimates)
     desirable_move = L[ static_estimates.index(max(static_estimates)) ]
-    return personal_static_est_midgame_endgame(desirable_move), desirable_move, static_est_count
+    return max_est, desirable_move, static_est_count
 
 def MaxMin(L, level, max_depth):
     #if x is a leaf return static(x)

@@ -28,8 +28,9 @@ def GenerateMovesOpeningBlack(bp):
 def MinMaxAlgorithmOpening(bp, level, max_depth):
     L = GenerateMovesOpening(bp)
     static_estimates, static_est_count = MaxMin(L, level, max_depth)
+    max_est = max(static_estimates)
     desirable_move = L[ static_estimates.index(max(static_estimates)) ]
-    return personal_static_est_opening(desirable_move), desirable_move, static_est_count
+    return max_est, desirable_move, static_est_count
 
 def MaxMin(L, level, max_depth):
     #if x is a leaf return static(x)
