@@ -34,7 +34,7 @@ def MinMaxAlgorithmOpening(bp, level, max_depth):
     static_estimates, static_est_count = MaxMin(L, level, max_depth)
     max_est = max(static_estimates)
     # Get the most desirable move for Black as White 
-    desirable_move_black_as_white = L[ static_estimates.index(max(static_estimates)) ]
+    desirable_move_black_as_white = L[ static_estimates.index(max_est) ]
     # Flip the Board back to Black
     desirable_move = flip_board_position(desirable_move_black_as_white)
 

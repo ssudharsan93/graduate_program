@@ -29,7 +29,7 @@ def MinMaxAlgorithmGame(bp, level, max_depth):
     L = GenerateMovesMidgameEndgame(bp)
     static_estimates, static_est_count = MaxMin(L, level, max_depth)
     max_est = max(static_estimates)
-    desirable_move = L[ static_estimates.index(max(static_estimates)) ]
+    desirable_move = L[ static_estimates.index(max_est) ]
     return max_est, desirable_move, static_est_count
 
 def MaxMin(L, level, max_depth):
