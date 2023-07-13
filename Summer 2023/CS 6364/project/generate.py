@@ -1,3 +1,5 @@
+import pprint
+
 DEBUG = False
 
 BOARD_MAP_INDEX_TO_POS = [
@@ -192,7 +194,7 @@ def GenerateRemove(input_board_position, L):
                 removed_black_pieces_L.append(b)
     
     if ( len(removed_black_pieces_L) == 0 ):
-        L.append(list(input_board_position))
+        L .append(list(input_board_position))
     else:
         L += removed_black_pieces_L
     
