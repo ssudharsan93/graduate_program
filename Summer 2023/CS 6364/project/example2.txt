@@ -1,0 +1,52 @@
+Input Board is board4.txt Output Board is output_board.txt Depth is 2
+Input Board contains
+xxxxxxWWWxWWxBBBBxxxxx
+
+/home/pypy/pypy3.exe MiniMaxOpening.py board4.txt output_board.txt 2
+	Board Position: xxxWxxWWWxWWxBBBBxxxxx
+	Positions evaluated by static estimation: 3154
+	MINIMAX estimate: 3
+
+
+/home/pypy/pypy3.exe MiniMaxGame.py board4.txt output_board.txt 2
+	Board Position: WxxxxxxWWxWWxBBBBxxxxx
+	Positions evaluated by static estimation: 1192
+	MINIMAX estimate: 998
+
+
+/home/pypy/pypy3.exe MiniMaxOpeningImproved.py board4.txt output_board.txt 2
+	Board Position: WxxxxxWWWxWWxBBBBxxxxx
+	Positions evaluated by static estimation: 3154
+	MINIMAX estimate: 90
+
+
+/home/pypy/pypy3.exe MiniMaxGameImproved.py board4.txt output_board.txt 2
+	Board Position: xxxxxxWWWWxWxBBBBxxxxx
+	Positions evaluated by static estimation: 1192
+	MINIMAX estimate: 3000
+
+
+/home/pypy/pypy3.exe ABOpening.py board4.txt output_board.txt 2
+	Board Position: xxxxxxWWWWWWxxBBBxxxxx
+	Positions evaluated by static estimation: 72
+	MINIMAX estimate: 2
+
+
+/home/pypy/pypy3.exe ABGame.py board4.txt output_board.txt 2
+	Board Position: WxxxxxxWWxWWxBBBBxxxxx
+	Positions evaluated by static estimation: 13
+	MINIMAX estimate: 1
+
+
+/home/pypy/pypy3.exe MiniMaxOpeningBlack.py board4.txt output_board.txt 2
+	Board Position: xxxxxxWWWxxWBBBBBxxxxx
+	Positions evaluated by static estimation: 2422
+	MINIMAX estimate: 2
+
+
+/home/pypy/pypy3.exe MiniMaxGameBlack.py board4.txt output_board.txt 2
+	Board Position: xxxxxxWWWxWWBxBBBxxxxx
+	Positions evaluated by static estimation: 240
+	MINIMAX estimate: -10
+
+
