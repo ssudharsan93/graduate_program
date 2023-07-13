@@ -9,8 +9,6 @@ def main():
 
     depth = min(int(args[2]), 16)
 
-    #write_board_position_to_file(args[1], flipped_bp)
-
     final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmGame(bp, 0, depth)
 
     print_final_static_estimation_data(
@@ -18,6 +16,9 @@ def main():
         desirable_move, 
         static_estimation_count
     )
+
+    write_board_position_to_file(args[1], desirable_move)
+
 
 def GenerateMovesMidgameEndgameBlack(bp):
     black_bp = flip_board_position(bp)
