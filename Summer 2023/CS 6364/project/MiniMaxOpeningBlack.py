@@ -7,7 +7,7 @@ def main():
     args = argument_parser_helper()
     bp = read_board_position_from_file(args[0])
 
-    depth = min(int(args[2]), 16)
+    depth = int(args[2])
 
     final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmOpening(bp, 0, depth)
 
@@ -19,13 +19,14 @@ def main():
 
     write_board_position_to_file(args[1], desirable_move)
 
-
+#produces moves for black
 def GenerateMovesOpeningBlack(bp):
     black_bp = flip_board_position(bp)
     black_moves_as_white = GenerateMovesOpening(black_bp)
 
     return [ flip_board_position(black_move) for black_move in black_moves_as_white ]
-    
+
+#initiates the minimax algorithm
 def MinMaxAlgorithmOpening(bp, level, max_depth):
     # Flip the Board to Black as White
     black_board_position_as_white = flip_board_position(bp)

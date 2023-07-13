@@ -7,7 +7,7 @@ def main():
     args = argument_parser_helper()
     bp = read_board_position_from_file(args[0])
 
-    depth = min(int(args[2]), 16)
+    depth = int(args[2])
 
     final_static_estimation, desirable_move, static_estimation_count = MinMaxAlgorithmGame(bp, 0, depth)
 
@@ -19,13 +19,14 @@ def main():
 
     write_board_position_to_file(args[1], desirable_move)
 
-
+#produces moves for black
 def GenerateMovesMidgameEndgameBlack(bp):
     black_bp = flip_board_position(bp)
     black_moves_as_white = GenerateMovesMidgameEndgame(black_bp)
 
     return [ flip_board_position(black_move) for black_move in black_moves_as_white ]
-    
+
+#initiates the minimax algorithm
 def MinMaxAlgorithmGame(bp, level, max_depth):
     L = GenerateMovesMidgameEndgame(bp)
     static_estimates, static_est_count = MaxMin(L, level, max_depth)
