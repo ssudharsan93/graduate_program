@@ -249,14 +249,100 @@ def static_est_midgame_endgame(input_board_position):
         return 1000 * ( num_white_pieces(input_board_position) - 
                         num_black_pieces(input_board_position) ) - numBlackMoves
 
-def static_est_opening(input_board_positions):
-    return ( num_white_pieces(input_board_positions) - 
-            num_black_pieces(input_board_positions) )
+def static_est_opening(input_board_position):
+    return ( num_white_pieces(input_board_position) - 
+            num_black_pieces(input_board_position) )
+
+PERSONAL_OPENING_POSITION_WEIGHTS = {
+    "a0" : 3,
+    "g0" : 3,
+    "b1" : 1,
+    "f1" : 1,
+    "c2" : -2,
+    "e2" : -2,
+    "a3" : 2,
+    "b3" : 3,
+    "c3" : 0,
+    "e3" : 0,
+    "f3" : 3,
+    "g3" : 2,
+    "c4" : -2,
+    "d4" : 0,
+    "e4" : -2,
+    "b5" : 1,
+    "d5" : 3,
+    "f5" : 1,
+    "a6" : 3,
+    "d6" : 2,
+    "g6" : 3
+}
+
+PERSONAL_MIDGAME_ENDGAME_POSITION_WEIGHTS = {
+    "a0" : -10,
+    "g0" : -10,
+    "b1" : -50,
+    "f1" : -50,
+    "c2" : -100,
+    "e2" : -100,
+    "a3" : 100,
+    "b3" : 200,
+    "c3" : 50,
+    "e3" : 50,
+    "f3" : 200,
+    "g3" : 100,
+    "c4" : -100,
+    "d4" : 50,
+    "e4" : -100,
+    "b5" : -50,
+    "d5" : 200,
+    "f5" : -50,
+    "a6" : -10,
+    "d6" : 100,
+    "g6" : -10
+}
 
 def personal_static_est_midgame_endgame(input_board_position):
-    return 0
+    black_board = flip_board_position(input_board_position)
+    numBlackMoves = len(GenerateMove(black_board))
 
-def personal_static_est_opening(input_board_positions):
-    return 0
+    BlackScore = 0
+    WhiteScore = 0
+
+    for location in PERSONAL_MIDGAME_ENDGAME_POSITION_WEIGHTS.keys():
+        if input_board_position[BOARD_MAP_POS_TO_INDEX[location]] == "W":
+            WhiteScore += PERSONAL_MIDGAME_ENDGAME_POSITION_WEIGHTS[location]
+
+        elif input_board_position[BOARD_MAP_POS_TO_INDEX[location]] == "B":
+            BlackScore += PERSONAL_MIDGAME_ENDGAME_POSITION_WEIGHTS[location]
+
+        else:
+            continue
+    
+    if ( num_black_pieces(input_board_position) <= 2 ):
+        return 10000
+    elif ( num_white_pieces(input_board_position) <= 2 ):
+        return (-10000)
+    elif ( numBlackMoves == 0 ):
+        return 10000 
+    else:
+        return ( WhiteScore * num_white_pieces(input_board_position) - 
+                BlackScore * num_black_pieces(input_board_position) )
+
+def personal_static_est_opening(input_board_position):
+    BlackScore = 0
+    WhiteScore = 0
+
+    for location in PERSONAL_OPENING_POSITION_WEIGHTS.keys():
+        if input_board_position[BOARD_MAP_POS_TO_INDEX[location]] == "W":
+            WhiteScore += PERSONAL_OPENING_POSITION_WEIGHTS[location]
+
+        elif input_board_position[BOARD_MAP_POS_TO_INDEX[location]] == "B":
+            BlackScore += PERSONAL_OPENING_POSITION_WEIGHTS[location]
+
+        else:
+            continue     
+
+    return ( WhiteScore * num_white_pieces(input_board_position) - 
+            BlackScore * num_black_pieces(input_board_position) )
 
 # Static Estimation Functions End
