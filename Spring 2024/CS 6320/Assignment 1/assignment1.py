@@ -1,3 +1,5 @@
+#! python3
+
 import sys
 import nltk
 import time
@@ -276,4 +278,5 @@ def main():
 
     return
 
-main()
+if __name__ == "__main__":
+    main()
