@@ -13,56 +13,42 @@ from nltk.stem import WordNetLemmatizer
 
 STOP_WORDS = nltk.corpus.stopwords.words('english')
 
-def read_input_file(FILENAME):
+def read_input_file(file_name):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Reads the text from an input file.
+        Arguments: a filename string
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            text - raw_text from a particular file
     """
 
-    with open(FILENAME, "r+") as open_f:
+    with open(file_name, "r+") as open_f:
         input_text = open_f.read()
 
     return input_text
 
 def desired_token(curr_token):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Checks whether a token matches a set of desired criteria.
+        Arguments: a token string
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            Boolean True or False value indicating whether a token
+            meets the desired criteria or not.
     """
 
     if ( ( len(curr_token) > 5 ) and 
          ( curr_token not in STOP_WORDS) and
          ( curr_token.isalpha() ) ):
-        #print(curr_token, ": True")
         return True
-
-    #if ( curr_token in STOP_WORDS ):
-    #    print(curr_token, ": False")
 
     return False
 
 def is_noun(tagged_lemma):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Checks whether a word is a noun.
+        Arguments: a tuple that contains a lemma and its part of speech
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            Boolean True or False value indicating whether a lemma
+            is a noun or not.
     """
 
     lemma, part_of_speech = tagged_lemma
@@ -70,14 +56,10 @@ def is_noun(tagged_lemma):
 
 def extract_noun_from_tagged_noun(tagged_noun):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Takes a noun and part of speech tuple and returns just the noun.
+        Arguments: a tuple that contains a noun and its part of speech
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            a string that represents a noun
     """
 
     noun, part_of_speech = tagged_noun
@@ -85,14 +67,10 @@ def extract_noun_from_tagged_noun(tagged_noun):
 
 def extract_noun_from_count_list(tagged_noun):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Takes a noun and count tuple and returns just the noun.
+        Arguments: a tuple that contains a noun and occurrence count
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            a string that represents a noun
     """
 
     noun, count = tagged_noun
@@ -100,14 +78,15 @@ def extract_noun_from_count_list(tagged_noun):
 
 def text_preprocessing(input_filename):    
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Handles all the text preprocessing,
+        lemmatization, part of speech tagging, etc.
+        Prints out the necessary information for the assignment
+        (tokens, lexical diversity, token count, noun count etc.)
+        Arguments: a string that represents the input filename.
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+           a tuple that contains a list of tokens that meet the desired
+           critera ( they are not unique ) and a list of unique nouns
+           from the input file.
     """
 
     #read in the text in the input file
@@ -141,21 +120,19 @@ def text_preprocessing(input_filename):
 
     print("\n\tNumber of tokens from step(a) : ", len(desired_anat19_tokens))
     print("\n\tNumber of nouns from step(d) : ", len(anat19_nouns))
-    #print("\n\tNumber of nouns from step(d) : ", len(anat19_lemmas_nouns_tagged))
 
     return desired_anat19_tokens, anat19_nouns
     
     
 def get_noun_count_dict(tokens_list, nouns_list):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Creates a dictionary, with nouns as keys
+        and the count of how many times they appear 
+        in the list of tokens as the values.
+        Arguments: a list of tokens and a list of nouns
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            Dictionary, has nouns as keys, and occurence counts as
+            values.
     """
 
     noun_count = { noun : 0 for noun in nouns_list }  
@@ -171,14 +148,10 @@ def get_noun_count_dict(tokens_list, nouns_list):
 
 def choose_random_word(word_list):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Randomly selects a word from the provided word list.
+        Arguments: list of words to choose from
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            A string that represents the randomly selected word.
     """
     random.seed(time.time())
     random_idx = math.floor(50 * random.random())
@@ -186,14 +159,11 @@ def choose_random_word(word_list):
 
 def print_curr_guess_str(curr_str):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Prints the guess string with proper formatting.
+        Arguments: A string representing the letters still unknown
+        and the letters that have been guessed correctly. 
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            Void. Simply outputs the guess string. 
     """
 
     for itr in range( len(curr_str) - 1 ):
@@ -202,14 +172,17 @@ def print_curr_guess_str(curr_str):
 
 def update_guess_str(guess_str, chosen_word, char_guess):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Modifies the guess string with the guessed character
+        placed/ showing up in the correct spots based on the
+        chosen word.
+        Arguments: A list of individual characters representing the guess string that 
+        indicates which letters were guessed correctly and which letters are unknown, 
+        a list containing the individual characters of the
+        chosen word, and the character that was guessed.
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            A list containing the individual characters of the updated guess string
+            corresponding to a correct guessed character being placed in its corresponding
+            proper location.
     """
 
     for itr in range(len(chosen_word)):
@@ -220,14 +193,12 @@ def update_guess_str(guess_str, chosen_word, char_guess):
 
 def guessing_game(most_common_nouns):
     """
-        Preprocess raw tex.
-        Arguments: a raw text string
+        Handles the guessing hangman-type minigame.
+        Arguments: a list of the most common nouns
         Output:
-            text - raw_text with punctuation and numbers removed, lower cased
-            tokens - tokens
-            stemmed - stemmed words
-            lemmas - lemmas
-            content - tokens with stop words removed
+            Void. Simply allows the user to play the guessing game.
+            Prints out statements indicating the success, failure, 
+            and general performance of the user playing the game.
     """
     curr_points = 5
     unknown_char = "_"
@@ -278,6 +249,16 @@ def guessing_game(most_common_nouns):
     return
 
 def main():
+    """
+        Main method that handles passing proper arguments to 
+        methods. Calls the pre-processing method, guessing game 
+        method. 
+        Arguments: Expects just a command line argument for the 
+        name of the file that contains the input data.
+        Output:
+            Void. Simply allows the user to run the pre-processing code,
+            and guessing game code.
+    """
 
     if ( len(sys.argv) <= 1 ):
         print("Error! Input File not provided. Aborting...")
