@@ -101,7 +101,8 @@ def text_preprocessing(input_filename):
     unique_anat19_tokens = list(set(anat19_tokens))
     lexical_diversity = ( 1.0 * len(unique_anat19_tokens) ) / ( 1.0 * len(anat19_tokens) )
 
-    print("\n\tLexical Diversity ( # unique tokens / total # of tokens ) : ", lexical_diversity)
+    print("\n\tLexical Diversity ( # unique tokens / total # of tokens ) : ", end='') 
+    print("{:.2f}".format(lexical_diversity))
 
     desired_anat19_tokens = list(filter(desired_token, anat19_tokens))
 
