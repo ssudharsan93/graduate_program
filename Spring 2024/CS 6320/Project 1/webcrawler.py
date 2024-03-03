@@ -5,13 +5,15 @@ from urllib import request, error, parse, robotparser
 from bs4 import BeautifulSoup
 import sys
 import requests
-from collections import deque
+from collections import deque, Counter
 import os
 import re
 
 import nltk
 nltk.download('punkt')
+nltk.download('stopwords')
 from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
 
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer,CountVectorizer
@@ -20,15 +22,31 @@ import numpy as np
 
 ############ COUNTS / IMPORTANT TERMS METHODS ##############
 def is_valid_sentence(sentence):
-    return re.search(r'[\w]+[^\r\n\t]+[.!?]$', sentence, re.A) is not None
+    format_matched = re.search(r'[^\r\n\t]+[.!?]$', sentence, re.A) is not None
+    special_char_found = re.search(r'[\|]', sentence, re.A) is not None
+
+    return ( ( format_matched ) and ( not special_char_found ) )
+
+def is_valid_token(token):
+    is_not_stop_word = token not in STOPWORDS
+    is_alpha = token.isalpha()
+    return ( is_not_stop_word and is_alpha )
+
+def extract_counts(tokens):
+    return dict(Counter(tokens))
+    #return { tok : tokens.count(tok) for tok in set(tokens) }
+
+def extract_tokens(sentences):
+    tokens = list()
+    for sentence in sentences:
+        tokens = tokens + word_tokenize(sentence.lower())
+    tokens = list(filter(is_valid_token, tokens))
+
+    return tokens
 
 def extract_valid_sentences(content):
     sentences = sent_tokenize(content)
     sentences = list(filter(is_valid_sentence, sentences))
-    for itr, sentence in enumerate(sentences):
-        print("\n")
-        print(itr)
-        print(sentence)
     return sentences
 
 def read_clean_corpus_file(clean_corpus_file):
@@ -40,20 +58,12 @@ def make_corpus_dictionaries():
     clean_corpus_dir = os.path.join(CWD, 'corpus','clean')
     clean_corpus_files = os.listdir(clean_corpus_dir)
 
-    #corpus_contents = list()
-
     for clean_corpus_file in sorted(clean_corpus_files):
         clean_corpus_file_path = os.path.join(clean_corpus_dir, clean_corpus_file)
         content = read_clean_corpus_file(clean_corpus_file_path)
         sentences = extract_valid_sentences(content)
-
-        #unique_feature_names = list(set(feature_names))
-        #term_counts = { 
-        #    unique_feature_name : feature_names.count(unique_feature_name)
-        #    for unique_feature_name in unique_feature_names 
-        #}
-
-        #print(term_counts)
+        tokens = extract_tokens(sentences)
+        counts = extract_counts(tokens)
 
 ############ COUNTS / IMPORTANT TERMS METHODS ##############
 
@@ -189,7 +199,7 @@ def scrape_web(
 
     url_deque = deque(starting_urls, maxlen=max_num_url)
     num_urls_processing = len(starting_urls)
-    index = 0
+    num_corpus_file_written = 0
     extra_urls = list()
 
     while ( len(url_deque) != 0 ):
@@ -204,7 +214,7 @@ def scrape_web(
             curr_url_text = scrape_text_from_soup(curr_soup_inst)
 
             write_raw_corpus_file(curr_url_text, index)
-            index += 1
+            num_corpus_file_written += 1
             
             a_tags = get_a_tags(curr_soup_inst)
             hrefs = get_hrefs_from_a_tags(a_tags)
@@ -225,8 +235,10 @@ def scrape_web(
             if ( not ( num_urls_processing >= min_num_url ) ):
                 url_deque.extendleft(hrefs)
                 num_urls_processing += len(hrefs)
-            else: 
-                extra_urls + hrefs
+            else:
+                extra_urls = extra_urls + hrefs
+            #    if ( num_corpus_file_written < max_num_url ):
+
 
 ############ SCRAPING METHODS ##############
 
@@ -249,8 +261,10 @@ def main():
     make_corpus_dictionaries()
 
 if __name__ == "__main__":
-    global CWD 
+    global CWD
+    global stopwords
     CWD = os.getcwd()
+    STOPWORDS = stopwords.words('english')
     main()
 
 
