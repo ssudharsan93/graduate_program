@@ -467,9 +467,12 @@ def main():
 
     print("The top 25 terms are as follows:\n")
     for term in top_twenty_five_terms: print("\t", term)
+    print("\n")
 
     keywords = read_terms(keywords_file)
     knowledge_base = build_knowledge_base(corpus_dict, tf_idf_dict, keywords)
+
+    #pprint(knowledge_base)
     
     pickle_data_dictionary(os.path.join(pickle_corpus_dir, 'knowledge_base.pickle'), knowledge_base)
     pickle_data_dictionary(os.path.join(pickle_corpus_dir, 'corpus.pickle'), corpus_dict)
