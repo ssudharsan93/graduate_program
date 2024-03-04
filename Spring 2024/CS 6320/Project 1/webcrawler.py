@@ -76,7 +76,7 @@ def build_knowledge_base(corpus_dict, tf_idf_dict, keywords):
     
     for keyword in keywords:
         best_match_corpus_file = get_best_matching_corpus_file(corpus_dict, tf_idf_dict, keyword)
-        knowledge_base_dict[keyword] = "\n".join(corpus_dict[best_match_corpus_file]['sentences'])
+        knowledge_base_dict[keyword] = corpus_dict[best_match_corpus_file]['sentences']
         
         #print("\n")
         #print(keyword)
@@ -464,6 +464,9 @@ def main():
     #clean_corpus_files()
     corpus_dict, tf_idf_dict = make_corpus_dictionaries()
     top_twenty_five_terms = get_top_twenty_five_terms(tf_idf_dict)
+
+    print("The top 25 terms are as follows:\n")
+    for term in top_twenty_five_terms: print("\t", term)
 
     keywords = read_terms(keywords_file)
     knowledge_base = build_knowledge_base(corpus_dict, tf_idf_dict, keywords)

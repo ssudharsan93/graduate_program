@@ -10,7 +10,7 @@ def read_pickle_file(filename):
 
 def print_statement(knowledge_base):
     prompt_str = "What would you like to talk about today?\n\n"
-    prompt_str += "You can ask about the following:\n\t"
+    prompt_str += "You can ask me about the following:\n\t"
     prompt_str += ",\n\t".join(knowledge_base.keys())
     prompt_str += "\n\n>"
     response = input(prompt_str)
