@@ -21,6 +21,10 @@ def fc_forward(x, w, b):
     ###########################################################################
     # TODO: Implement the forward pass. Store the result in out.              #
     ###########################################################################
+    #print("x:", end='')
+    #print(x.shape)
+    #print("w:", end='')
+    #print(w.shape)
     out = x @ w
     out = out + b
     ###########################################################################
@@ -56,6 +60,7 @@ def fc_backward(grad_out, cache):
     grad_w = x.transpose() @ grad_out 
     grad_b = np.matrix(np.ones(N)) @ np.matrix(grad_out)
     grad_b = np.asarray(grad_b)
+    grad_b = np.resize(grad_b, b.shape)
 
     ###########################################################################
     #                             END OF YOUR CODE                            #

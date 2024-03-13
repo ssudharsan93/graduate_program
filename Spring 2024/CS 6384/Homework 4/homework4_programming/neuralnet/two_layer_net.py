@@ -27,6 +27,10 @@ class TwoLayerNet(Classifier):
         #######################################################################
         # TODO: Initialize the weights and biases of a two-layer network.     #
         #######################################################################
+        self.W1 = weight_scale * np.random.randn(input_dim, num_classes)
+        self.b1 = np.zeros(num_classes)
+        self.W2 = weight_scale * np.random.randn(num_classes, num_classes)
+        self.b2 = np.zeros(num_classes)
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -36,6 +40,13 @@ class TwoLayerNet(Classifier):
         #######################################################################
         # TODO: Build a dict of all learnable parameters of this model.       #
         #######################################################################
+        params = {
+            'W1': self.W1,
+            'b1': self.b1,
+            'W2': self.W2,
+            'b2': self.b2,
+        }
+        return params
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -48,6 +59,10 @@ class TwoLayerNet(Classifier):
         # for the input data X. Store into cache any data that will be needed #
         # during the backward pass.                                           #
         #######################################################################
+        scores, cache_fc1 = fc_forward(X, self.W1, self.b1)
+        scores, cache_relu = relu_forward(scores)
+        scores, cache_fc2 = fc_forward(scores, self.W2, self.b2)
+        cache = (cache_fc1, cache_relu, cache_fc2)
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -61,6 +76,17 @@ class TwoLayerNet(Classifier):
         # above. The grads dict should give gradients for all parameters in   #
         # the dict returned by model.parameters().                            #
         #######################################################################
+        cache_fc1, cache_relu, cache_fc2 = cache
+        grad_X, grad_W2, grad_b2 = fc_backward(grad_scores, cache_fc2)
+        grad_X = relu_backward(grad_X, cache_relu)
+        grad_X, grad_W1, grad_b1 = fc_backward(grad_X, cache_fc1)
+        
+        grads = {
+            'W1': grad_W1,
+            'b1': grad_b1,
+            'W2': grad_W2,
+            'b2': grad_b2,
+        }
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
