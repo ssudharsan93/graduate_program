@@ -36,7 +36,7 @@ The following scheme is in accordance with these rules:
 The scheme is as follows:
 
 Printer: 
-         wait(sync_pc);         // wait for a message to exist; sync_pc = how many total messages exist in all queues
+         wait(sync_pc);         // wait for a message to exist; sync_pc = how many total non empty queues
          wait(guard);           // tell communicators you are reading a message
          
          DQ;                    // until queue is empty
@@ -62,7 +62,7 @@ Communicator:
             sem_post_ret_code = sem_post(sync_pc);                          // signal sync_pc to indicate that another queue
         }                                                                   // is no longer empty
 
-        set_bit(full_queue_select, comm_obj->get_index()); // set the bit corresponding to the  communicator
+        set_bit(full_queue_select, comm_obj->get_index()); // set the bit corresponding to the communicator
                                                            // to indicate non-empty queue
 
         if (comm_count == 0) {              // if last communicator 
