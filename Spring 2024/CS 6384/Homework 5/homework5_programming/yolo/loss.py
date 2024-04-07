@@ -30,7 +30,8 @@ def compute_iou(pred, gt):
     w = max(0.0, xx2 - xx1 + 1)
     h = max(0.0, yy2 - yy1 + 1)
     inter = w * h
-    iou = inter / (areap + areag - inter)    
+    iou = inter / (areap + areag - inter)
+
     return iou
 
 # TODO: finish the implementation of this loss function for YOLO training
@@ -94,11 +95,33 @@ def compute_loss(output, pred_box, gt_box, gt_mask, num_boxes, num_classes, grid
     # This is implementation for the loss_obj
     # Follow this example to compute other losses
     loss_obj = torch.sum(box_mask * torch.pow(box_confidence - output[:, 4:5*num_boxes:5], 2.0))
-
+    
     ### ADD YOUR CODE HERE ###
+    loss_x = weight_coord * torch.sum(box_mask * torch.pow(gt_box[:, 0] - output[:, 0:5*num_boxes:5], 2.0))
+    loss_y = weight_coord * torch.sum(box_mask * torch.pow(gt_box[:, 1] - output[:, 1:5*num_boxes:5], 2.0))
+    
+    loss_w_test = weight_coord * torch.sum(box_mask * \
+        torch.pow(
+            ( torch.sqrt(gt_box[:, 2]) - \
+            torch.sqrt(output[:, 2:5*num_boxes:5]) ), 
+            2.0
+        )
+    )
+    loss_h = weight_coord * torch.sum(box_mask * \
+        torch.pow(
+            ( torch.sqrt(gt_box[:, 3]) - \
+            torch.sqrt(output[:, 3:5*num_boxes:5]) ), 
+            2.0
+        )
+    )
+    
+    loss_noobj = weight_noobj * torch.sum((1 - box_mask) * torch.pow(box_confidence - output[:, 4:5*num_boxes:5], 2.0))
+    #loss_cls = torch.sum(box_mask * torch.pow(gt_mask - box_mask, 2.0))
+    loss_cls = 0
+
     # Use weight_coord and weight_noobj defined above
 
-    # print('lx: %.4f, ly: %.4f, lw: %.4f, lh: %.4f, lobj: %.4f, lnoobj: %.4f, lcls: %.4f' % (loss_x, loss_y, loss_w, loss_h, loss_obj, loss_noobj, loss_cls))
+    #print('lx: %.4f, ly: %.4f, lw: %.4f, lh: %.4f, lobj: %.4f, lnoobj: %.4f, lcls: %.4f' % (loss_x, loss_y, loss_w, loss_h, loss_obj, loss_noobj, loss_cls))
 
     # the totol loss
     loss = loss_x + loss_y + loss_w + loss_h + loss_obj + loss_noobj + loss_cls

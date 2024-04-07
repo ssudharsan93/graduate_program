@@ -123,8 +123,8 @@ class CrackerBox(data.Dataset):
 
         gt_cell_values = np.zeros((5,))
         gt_cell_values[2:4] = [
-            gt_bbox_resized_coords[2] - gt_bbox_resized_coords[0],
-            gt_bbox_resized_coords[3] - gt_bbox_resized_coords[1],
+            abs(gt_bbox_resized_coords[2] - gt_bbox_resized_coords[0]),
+            abs(gt_bbox_resized_coords[3] - gt_bbox_resized_coords[1]),
         ]
         gt_cell_values[0:2] = [
             gt_bbox_resized_coords[0] + gt_cell_values[2] / 2.0,
