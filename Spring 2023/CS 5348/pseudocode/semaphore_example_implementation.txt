@@ -80,12 +80,6 @@ Printer:
          //service the msg
 
 Comm:   
-        recv;
-
-        if ( comm->queue_size() == MQS ) {
-                sleep(5000);
-                continue;
-        }
         
         wait(comm_prot);                    // protect against other communicators
         comm_count++;                       // increase the number of communicators
