@@ -40,13 +40,7 @@ class YOLO(nn.Module):
         # hint: use the modules.add_module()
         modules.add_module(
             'conv_1', 
-            nn.Conv2d(
-                in_channels=3,
-                out_channels=16,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_1', 
@@ -54,24 +48,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_1', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_2', 
-            nn.Conv2d(
-                in_channels=16,
-                out_channels=32,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_2', 
@@ -79,24 +61,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_2', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_3', 
-            nn.Conv2d(
-                in_channels=32,
-                out_channels=64,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_3', 
@@ -104,24 +74,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_3', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_4', 
-            nn.Conv2d(
-                in_channels=64,
-                out_channels=128,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_4', 
@@ -129,24 +87,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_4', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_5', 
-            nn.Conv2d(
-                in_channels=128,
-                out_channels=256,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_5', 
@@ -154,24 +100,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_5', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_6', 
-            nn.Conv2d(
-                in_channels=256,
-                out_channels=512,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_6', 
@@ -179,24 +113,12 @@ class YOLO(nn.Module):
         )
         modules.add_module(
             'maxpool_6', 
-            nn.MaxPool2d(
-                kernel_size=2,
-                stride=2,
-                padding=0,
-                dilation=1,
-                ceil_mode=False
-            )
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
         )
 
         modules.add_module(
             'conv_7', 
-            nn.Conv2d(
-                in_channels=512,
-                out_channels=1024,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_7', 
@@ -205,13 +127,7 @@ class YOLO(nn.Module):
 
         modules.add_module(
             'conv_8', 
-            nn.Conv2d(
-                in_channels=1024,
-                out_channels=1024,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_8', 
@@ -220,13 +136,7 @@ class YOLO(nn.Module):
 
         modules.add_module(
             'conv_9', 
-            nn.Conv2d(
-                in_channels=1024,
-                out_channels=1024,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-            )
+            nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=3, stride=1, padding=1)
         )
         modules.add_module(
             'relu_9', 
@@ -240,29 +150,17 @@ class YOLO(nn.Module):
 
         modules.add_module(
             'fc1',
-            nn.Linear(
-                in_features=50176, 
-                out_features=256, 
-                bias=True
-            )
+            nn.Linear(in_features=50176, out_features=256, bias=True)
         )
 
         modules.add_module(
             'fc2',
-            nn.Linear(
-                in_features=256, 
-                out_features=256, 
-                bias=True
-            )
+            nn.Linear(in_features=256, out_features=256, bias=True)
         )
 
         modules.add_module(
             'output',
-            nn.Linear(
-                in_features=256, 
-                out_features=539, 
-                bias=True
-            )
+            nn.Linear(in_features=256, out_features=539, bias=True)
         )
 
         modules.add_module(

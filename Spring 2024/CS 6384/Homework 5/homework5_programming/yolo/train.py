@@ -39,9 +39,9 @@ if __name__ == '__main__':
 
     # hyper-parameters
     # you can tune these for your training
-    num_epochs = 100
+    num_epochs = 150
     batch_size = 2
-    learning_rate = 1e-4
+    learning_rate = 1e-5
     num_workers = 2
 
     # dataset

@@ -76,25 +76,15 @@ class CrackerBox(data.Dataset):
         filename_comps = filename_gt.split("-")
         img_filename = filename_comps[0] + ".jpg"
         cv2_image = cv2.imread(img_filename)
-        orig_height, orig_width = cv2_image.shape[:2]
-        rescaled_cv2_image = cv2.resize(cv2_image, (self.yolo_image_size, self.yolo_image_size))
-        rescaled_height, rescaled_width = rescaled_cv2_image.shape[:2]
-        rescaled_image_tensor = torch.tensor(rescaled_cv2_image)
-        norm_image_tensor = ( rescaled_image_tensor - pixel_mean_tensor ) / 255
+        rescaled_cv2_image = cv2.resize(
+            cv2_image, 
+            (0, 0),
+            fx=self.scale_width, 
+            fy=self.scale_height,
+        ).astype('float32')
+        norm_image = ( rescaled_cv2_image - self.pixel_mean ) / 255.0
+        norm_image_tensor = torch.FloatTensor(norm_image)
         image_blob = norm_image_tensor.permute(2, 0, 1)
-
-        #print(pixel_mean_tensor)
-        #print(image)
-        #print(norm_image)
-        #print(norm_image/255)
-
-        #image = torchvision.io.read_image(img_filename)
-        #print(image)
-        #img_transform = torchvision.transforms.Resize(
-        #    (self.yolo_image_size, self.yolo_image_size)
-        #)
-        #image_blob = img_transform(image)
-        #image_blob = image_blob1 - pixel_mean_tensor.view((3,1,1))
 
         ##### Image Tensor Code End #####
 
@@ -135,8 +125,8 @@ class CrackerBox(data.Dataset):
         grid_x_idx = int(gt_cell_values[0] // 64)
         grid_y_idx = int(gt_cell_values[1] // 64)
 
-        x_offset = gt_cell_values[0] % 64
-        y_offset = gt_cell_values[1] % 64
+        x_offset = gt_cell_values[0] % self.yolo_grid_size
+        y_offset = gt_cell_values[1] % self.yolo_grid_size
 
         gt_cell_values[0:2] = [
             x_offset / self.yolo_grid_size, 
@@ -145,11 +135,11 @@ class CrackerBox(data.Dataset):
 
         gt_cell_values[2:4] /= float(self.yolo_image_size)
 
-        gt_box_blob_arr[grid_y_idx][grid_x_idx] = gt_cell_values
+        gt_box_blob_arr[:,:] = gt_cell_values
         gt_mask_blob_arr[grid_y_idx][grid_x_idx] = 1
 
-        gt_box_blob = torch.tensor(gt_box_blob_arr).permute(2, 0, 1)
-        gt_mask_blob = torch.tensor(gt_mask_blob_arr)
+        gt_box_blob = torch.FloatTensor(gt_box_blob_arr).permute(2, 0, 1)
+        gt_mask_blob = torch.FloatTensor(gt_mask_blob_arr)
 
         #print(gt_bbox_coords)
         #print(resizing_factors_for_coords)
@@ -159,8 +149,8 @@ class CrackerBox(data.Dataset):
         #print(grid_y_idx)
         #print(self.yolo_grid_size)
         #print(self.yolo_image_size)
-        #print(gt_box_blob.shape)
-        #print(gt_mask_blob.shape)
+        #print(gt_box_blob_test)
+        #print(gt_mask_blob_test)
 
         ##### Bounding Box Code End #####
 
