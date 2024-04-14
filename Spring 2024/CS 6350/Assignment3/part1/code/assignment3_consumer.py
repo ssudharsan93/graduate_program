@@ -41,9 +41,16 @@ from __future__ import print_function
 import sys
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import explode
-from pyspark.sql.functions import split
-from sparknlp.annotator import *
+from pyspark.sql.functions import udf, col, size, desc, \
+                                  concat, lit, explode, split
+from pyspark.sql.types import ArrayType, StringType
+import spacy
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import os
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -55,6 +62,8 @@ if __name__ == "__main__":
     bootstrapServers = sys.argv[1]
     subscribeType = sys.argv[2]
     topics = sys.argv[3]
+    ner_tagger = spacy.load("en_core_web_sm")
+    en_stopwords = set(stopwords.words('english'))
 
     spark = SparkSession\
         .builder\
@@ -70,24 +79,65 @@ if __name__ == "__main__":
         .option("kafka.bootstrap.servers", bootstrapServers)\
         .option(subscribeType, "topic1")\
         .load()\
+        .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
-    articles.printSchema()
+    def get_named_entities(text):
+        tokens = word_tokenize(text.lower())
+        tokens = list(filter(lambda x: x not in en_stopwords, tokens))
+        tokens = list(filter(lambda x: x.isalpha(), tokens))
+        tokens = list(filter(lambda x: x not in ["li", "getty", "images"] , tokens)) #li token keeps appearing
+        text = " ".join(tokens)
+        doc = ner_tagger(text)
+        entities = [ 
+            ent.text for ent in doc.ents 
+            if ent.label_ in [
+                "PERSON", "ORG", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART"
+            ]
+        ]
 
-    query = articles\
-        .writeStream\
-        .outputMode('append')\
-        .format('console')\
+        flattened_entities = list()
+
+        for entity in entities:
+            if " " in entity: flattened_entities += entity.split(" ")
+            else: flattened_entities + [ entity ]
+
+        return flattened_entities
+
+    named_entities_udf = udf(get_named_entities, ArrayType(StringType()))
+    articles = articles.withColumn("entities", named_entities_udf(col("value")))
+    # drop rows with no named entities
+    articles = articles.filter(size(col("entities")) > 0)
+    articles = articles.select(
+        "entities", 
+        explode("entities").alias("entity")
+    ).drop("entities")
+
+    word_counts = articles.groupBy('entity') \
+        .count() \
+        .orderBy(desc('count'))
+        .withColumnRenamed('entity', 'word')
+
+    #query = result\
+    #    .writeStream\
+    #    .outputMode('complete')\
+    #    .format('console')\
+    #    .start()
+
+    #query.awaitTermination()
+
+
+    # Start running the query that prints the running counts to the other kafka topic
+    checkpoint_dir = os.path.join(os.getcwd(), 'checkpoint')
+    if not os.path.exists(checkpoint_dir):
+        os.mkdir(checkpoint_dir)
+
+    query = word_counts.selectExpr("to_json(struct(*)) AS value") \
+        .writeStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", bootstrapServers) \
+        .option("topic", "topic2") \
+        .outputMode('complete') \
+        .option("checkpointLocation", checkpoint_dir) \
         .start()
 
     query.awaitTermination()
-
-
-    # Start running the query that prints the running counts to the console
-    #query = wordCounts\
-    #    .writeStream\
-    #    .format("kafka")\
-    #    .option("kafka.bootstrap.servers", bootstrapServers)\
-    #    .outputMode('complete')\
-    #    .start()\
-
-    #query.awaitTermination()

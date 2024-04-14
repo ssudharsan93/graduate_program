@@ -6,6 +6,7 @@ from newsapi import NewsApiClient
 from datetime import datetime, timedelta
 import time
 from kafka import KafkaProducer
+from langdetect import detect
 
 min_intervals = [15, 30, 45, 60]
 day_intervals = [7, 14, 21, 28]
@@ -21,16 +22,21 @@ if __name__ == "__main__":
         curr_inter_date = datetime.now()
         all_articles = newsapi.get_everything(
             q='ukraine',
-            exclude_domains='techcrunch.com',
             language='en',
             sort_by='relevancy',
 #            from_param=start_date,
 #            to=curr_inter_date,
-            page=2
+            page=1
         )
 
         time.sleep(trigger_interval)
 
         for article in all_articles['articles']:
-            for prop_key, prop_val in article.items():
-                producer.send('topic1', key=prop_key, value=prop_val.encode('utf-8'))
+            if ( ( article.get('content', None) ) ) :
+                if ( detect(article['content']) == 'en' ):
+                    producer.send(
+                        'topic1',
+                        key='content'.encode('utf-8'),
+                        value=article['content'].encode('utf-8')
+                    )
+

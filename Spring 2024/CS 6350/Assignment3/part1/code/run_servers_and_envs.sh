@@ -19,20 +19,20 @@ kill_processes() {
     exit 1
 }
 
-
-zookeeper_cmd="$KAFKA_HOME/bin/zookeeper-server-start.sh $KAFKA_HOME/config/zookeeper.properties zookeeper.log"
-kafka_cmd="$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties kafka.log"
-create_topic1_cmd="$KAFKA_HOME/bin/kafka-topics.sh --create --topic topic1 --bootstrap-server localhost:9092"
-create_topic2_cmd="$KAFKA_HOME/bin/kafka-topics.sh --create --topic topic2 --bootstrap-server localhost:9092"
+zookeeper_cmd="$ZOOKEEPER_HOME/bin/$ZOOKEEPER_CMD $ZOOKEEPER_CONFIG_HOME/zookeeper.properties zookeeper.log"
+kafka_cmd="$KAFKA_HOME/bin/$KAFKA_CMD $KAFKA_CONFIG_HOME/server.properties kafka.log"
+create_topic1_cmd="$KAFKA_HOME/bin/$KAFKA_TOPICS_CMD --create --topic topic1 --bootstrap-server localhost:9092"
+create_topic2_cmd="$KAFKA_HOME/bin/$KAFKA_TOPICS_CMD --create --topic topic2 --bootstrap-server localhost:9092"
 python_producer_cmd="/usr/local/bin/python3.11 assignment3_producer.py producer.log"
 
 run_processes $zookeeper_cmd
-sleep 5
+sleep 10
 run_processes $kafka_cmd
 sleep 5
 
 $create_topic1_cmd
 $create_topic2_cmd
+sleep 5
 
 run_processes $python_producer_cmd
 sleep 5
