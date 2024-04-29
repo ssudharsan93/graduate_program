@@ -39,7 +39,7 @@ def classification_model(num_features, num_classes):
     model.add(Dense(units=64, activation='relu'))
     model.add(Dense(units=num_classes, activation='softmax'))
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.summary()
+    #model.summary()
 
     return model
 
@@ -179,15 +179,6 @@ def get_topic_relevant_tokens(response_tokens, vocabulary):
     ])
 
 def is_important_term(term):
-    #print(term.text)
-    #print(term.pos_)
-    #print(( ( term.pos_.lower() == "propn" )  or 
-    #         ( term.pos_.lower() == "nn" ) or 
-    #         ( term.pos_.lower() == "noun" ) or
-    #         ( term.pos_.lower() == "adj" ) ) or
-    #         ( term.text in ROMAN_CONSTANTS )
-    #    )
-
     return ( ( term.pos_.lower() == "propn" )  or 
              ( term.pos_.lower() == "nn" ) or 
              ( term.pos_.lower() == "noun" ) or
@@ -218,7 +209,7 @@ def sentiment_analysis(sentence):
 
 ##### PROMPT METHODS #####
 
-def starting_prompt():
+def starting_prompt(exchange):
     starting_prompt_str = "\nHello There! My name is Sam.\n"
     starting_prompt_str += "I'm studying to become a Maester at the Citadel in Old Town.\n"
     starting_prompt_str += "I specialize in the history of the great Targaryen House and their "
@@ -226,7 +217,6 @@ def starting_prompt():
     starting_prompt_str += "other things as well.\n"
     starting_prompt_str += "What's your name?\n\n>"
 
-    exchange = list()
     exchange.append(starting_prompt_str)
     name = input(starting_prompt_str)
     exchange.append(name)
@@ -260,7 +250,9 @@ def starting_prompt():
         print(name_response_str)
         exchange.append(name_response_str)
 
-    feeling_prompt_str = "\nHow stands your well-being at present?\n\n>"
+    feeling_prompt_str = "\nHow stands your well-being at present?\n"
+    feeling_prompt_str += "\t( i.e. How are you feeling? \n"
+    feeling_prompt_str += "\t How is your day going? ) \n>"
     feeling_response_str = input(feeling_prompt_str)
     exchange.append(feeling_prompt_str)
     exchange.append(feeling_response_str)
@@ -281,6 +273,53 @@ def topic_prompt(knowledge_base):
     exchange.append(response)
 
     return exchange, response
+
+def change_topic_prompt(exchange):
+    change_topic = False
+    change_topic_str = "\nWould you care to engage in discussion on another matter?\n"
+    change_topic_str += "\t\t(You can type Yes to continue or \n"
+    change_topic_str += "\t\t You can type No to stop speaking with me. ) \n>"
+    exchange.append(change_topic_str)
+    response = input(change_topic_str)
+    exchange.append(response)
+
+    if ( response.lower() == "yes" ):
+        change_topic = True
+    elif ( response.lower() == "no" ):
+        change_topic = False
+    else:
+        confusion_str = "\nI beg your pardon, but your words are lost on me,\n"
+        confusion_str += "and I am unfamiliar with the tongue you speak.\n"
+        confusion_str += "What does " + "`" + response + "` mean exactly?\n"
+        print(confusion_str)
+        exchange.append(confusion_str)
+    
+    return exchange, change_topic
+
+def topic_accurate_prompt(predicted_topic, exchange):
+    is_topic_accurate = False
+
+    topic_accurate_str = "\nIt seems as if you'd like to discuss: \n"
+    topic_accurate_str += "\t" + predicted_topic + "\n"
+    topic_accurate_str += "\nAm I correct in my assumption?\n"
+    topic_accurate_str += "\t\t(You can type Yes to continue or \n"
+    topic_accurate_str += "\t\t You can type No to stop speaking with me. ) \n>"
+    exchange.append(topic_accurate_str)
+    response = input(topic_accurate_str)
+    exchange.append(response)
+
+    if ( response.lower() == "yes" ):
+        is_topic_accurate = True
+    elif ( response.lower() == "no" ):
+        is_topic_accurate = False
+    else:
+        confusion_str = "\nI beg your pardon, but your words are lost on me,\n"
+        confusion_str += "and I am unfamiliar with the tongue you speak.\n"
+        confusion_str += "What does " + "`" + response + "` mean exactly?\n"
+        print(confusion_str)
+        exchange.append(confusion_str)
+
+    return exchange, is_topic_accurate
 
 def continue_prompt():
     exchange = list()
@@ -305,7 +344,7 @@ def continue_prompt():
         exchange.append(confusion_str)
 
         new_exchange, new_will_continue = continue_prompt()
-        exchange += new_exchange
+        exchange.append(new_exchange)
         return exchange, new_will_continue
 
     return exchange, will_continue
@@ -338,51 +377,83 @@ def predict_topic(response):
     predictions = topic_model.predict(transformed_res)
     return topics[np.argmax(predictions[0])]
 
-def give_information(corpus, knowledge_base, response, exchange):
-    #key_terms = extract_important_terms(response)
-    #vocabulary = get_vocabulary(corpus)
-    #relevant_tokens = get_topic_relevant_tokens(key_terms, vocabulary)
+def give_information(knowledge_base, predicted_topic, exchange, curr_user_model):
+    possible_sentences = knowledge_base[predicted_topic]
+    discussed_sentences = curr_user_model['discussed'].get(predicted_topic, None)
 
-    predicted_topic = predict_topic(response)
+    if not discussed_sentences:
+        rand_idx = np.random.randint(len(possible_sentences))
+        discussed_sentences = [rand_idx]
 
-    relevant_info_str = "\nIt seems as if you'd like to discuss: \n"
-    relevant_info_str += "\t" + predicted_topic
-    print(relevant_info_str)
-    exchange.append(relevant_info_str)
+    elif ( len(discussed_sentences) == len(possible_sentences) ):
+        information_str = "\nI beg your pardon, but I possess no "
+        information_str += "further knowledge on this matter\n"
+        exchange.append(information_str)
+        print(information_str)
+        return exchange, curr_user_model
 
-    #found_info_str = "\nHmm... Here's what I can say about that."
-    #found_info_str += "\n\n"
+    else:
+        rand_idx = np.random.randint(len(possible_sentences))
+        while ( rand_idx in discussed_sentences ):
+            rand_idx = np.random.randint(len(possible_sentences))
+        updated_discussed_sentences = discussed_sentences
+        updated_discussed_sentences.append(rand_idx)
 
-    #information = search_for_information(corpus, knowledge_base, key_terms)
+        
+    information = possible_sentences[rand_idx]
+    information_str = "\nPermit me to illuminate a detail on this topic:\n"
+    information_str += information
+    information_str += "\n"
+    exchange.append(information_str)
+    print(information_str)
 
-    #if information: 
-    #    found_info_str += information
+    curr_user_model.update({
+        'discussed' : {
+            predicted_topic : discussed_sentences
+        }
+    })
 
-    #print(found_info_str)
-    #exchange.append(found_info_str)
-    
-    #unsure_str = "I possess no knowledge concerning that matter or person."
-    #print(unsure_str)
-    #exchange.append(unsure_str)
+    return exchange, curr_user_model
 
-    return exchange
+def topic_exchange(knowledge_base, exchange, curr_user_model):
+    is_topic_accurate = False
+    discuss_topics = True
 
-def topic_exchange(corpus, knowledge_base, exchange):
-    topic_prompt_exchange, response = topic_prompt(knowledge_base)
-    exchange += topic_prompt_exchange
-    exchange = give_information(corpus, knowledge_base, response, exchange)
+    if not curr_user_model.get('discussed', None):
+        curr_user_model.update({
+            'discussed' : dict()
+        })
 
-    return exchange
+    while ( discuss_topics ):
+        topic_prompt_exchange, response = topic_prompt(knowledge_base)
+        exchange.append(topic_prompt_exchange)
+        predicted_topic = predict_topic(response)
+        exchange, is_topic_accurate = topic_accurate_prompt(predicted_topic, exchange)
+        
+        if (is_topic_accurate):
+            exchange, curr_user_model = give_information(
+                knowledge_base, 
+                predicted_topic, 
+                exchange, 
+                curr_user_model
+            )
+            #topic_sentiment_prompt()
+            discuss_topics = False
+        else:
+            exchange, discuss_topics = change_topic_prompt(exchange)
+
+    return exchange, curr_user_model
 
 def continue_exchange(exchange):
+    #print(exchange)
     cont_prompt_exchange, still_chatting = continue_prompt()
-    exchange += cont_prompt_exchange
+    exchange.append(cont_prompt_exchange)
 
     return exchange, still_chatting
 
-def introductions(corpus, knowledge_base, exchange):
-    first_exchange, name, sentiment_score = starting_prompt()
-    exchange += first_exchange
+def introductions(knowledge_base, exchange, curr_user_model):
+    first_exchange, name, sentiment_score = starting_prompt(exchange)
+    exchange.append(first_exchange)
 
     #positive sentiment: compound score >= 0.05
     #neutral sentiment: (compound score > -0.05) and (compound score < 0.05)
@@ -393,7 +464,7 @@ def introductions(corpus, knowledge_base, exchange):
         print(happiness_str)
         exchange.append(happiness_str)
 
-        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, curr_user_model = topic_exchange(knowledge_base, exchange, curr_user_model)
         exchange, still_chatting = continue_exchange(exchange)
         
     elif ( ( sentiment_score > -0.05 ) and ( sentiment_score < 0.05 ) ):
@@ -402,7 +473,7 @@ def introductions(corpus, knowledge_base, exchange):
         print(neutral_str)
         exchange.append(neutral_str)
 
-        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, curr_user_model = topic_exchange(knowledge_base, exchange, curr_user_model)
         exchange, still_chatting = continue_exchange(exchange)
 
     else:
@@ -412,7 +483,14 @@ def introductions(corpus, knowledge_base, exchange):
 
         exchange, still_chatting = continue_exchange(exchange)
 
-    return exchange, still_chatting, name, sentiment_score
+    curr_user_model.update({
+        'name' : name,
+        'wellbeing_sentiment' : sentiment_score
+    })
+
+    return exchange, still_chatting, curr_user_model
+
+
 
 def chat(corpus, tf_idf, knowledge_base):
     curr_user_model = dict()
@@ -420,16 +498,18 @@ def chat(corpus, tf_idf, knowledge_base):
     name = None
     still_chatting = True
 
-    exchange, still_chatting, name, wellbeing_sentiment = introductions(corpus, knowledge_base, exchange)
+    exchange, still_chatting, curr_user_model = introductions(
+        knowledge_base, 
+        exchange, 
+        curr_user_model
+    )
 
     while ( still_chatting ):
-        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, curr_user_model = topic_exchange(knowledge_base, exchange, curr_user_model)
         exchange, still_chatting = continue_exchange(exchange)
 
     curr_user_model.update({
         'chat' : exchange,
-        'name' : name,
-        'wellbeing_sentiment' : wellbeing_sentiment,
     })
     
     curr_index = len(user_model.keys())
