@@ -17,6 +17,115 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 import spacy
 
+import tensorflow as tf
+import sklearn
+import pandas as pd
+import numpy as np
+
+from tensorflow.keras.layers import Input, Dense, Dropout, LayerNormalization
+from tensorflow.keras.layers import MultiHeadAttention, Embedding, GlobalAveragePooling1D
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+
+#### MACHINE LEARNING METHODS
+
+def classification_model(num_features, num_classes):
+    model = Sequential()
+    model.add(Dense(units=128, activation='relu', input_shape=(num_features,)))
+    model.add(Dense(units=64, activation='relu'))
+    model.add(Dense(units=num_classes, activation='softmax'))
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.summary()
+
+    return model
+
+def train_models(knowledge_base):
+    global topics
+    topics = sorted(list(knowledge_base.keys()))
+
+    topic_df = pd.DataFrame(
+        data=[ ( text, idx ) for idx, text in enumerate(topics) ], 
+        columns=['topic', 'label'] 
+    )
+
+    trainable_df = pd.DataFrame(
+        data=[ ( topic, knowledge_base[topic]) for topic in topics ], 
+        columns=['topic', 'text']
+    ).explode('text').reset_index(drop=True)
+
+    trainable_df = pd.merge(topic_df, trainable_df, on='topic', how='inner').drop(columns=['topic'])
+    trainable_df = pd.concat(
+        [
+            topic_df.rename(columns={'topic': 'text'}),
+            trainable_df
+        ],
+        ignore_index=True
+    )
+
+    global topic_tfidf_vectorizer
+    global topic_model
+
+    topic_tfidf_vectorizer = TfidfVectorizer()
+    vectorized_data = topic_tfidf_vectorizer.fit_transform(trainable_df['text'])
+    trainable_df['vectorized'] = vectorized_data.toarray().tolist()
+
+    max_document_length = trainable_df['vectorized'].apply(len).max()
+    trainable_df['vectorized'] = trainable_df['vectorized'].apply(
+        lambda x: pad_sequences(
+            [x], 
+            maxlen=max_document_length, 
+            padding='post',
+            dtype='float32'
+        )[0]
+    )
+
+    #classification_model_params
+    class_mod_num_classes = len(topics)
+    class_mod_num_features = max_document_length
+    num_epochs = 100
+    batch_size = 8
+    topic_model = classification_model(class_mod_num_features, class_mod_num_classes)
+
+    X = np.vstack(trainable_df['vectorized'].to_numpy())
+    y = trainable_df['label'].to_numpy()
+
+    #
+    random_state = np.random.randint(0, 1000)
+    #X_train, X_test, y_train, y_test = train_test_split(
+    #    X, y, test_size=0.1, stratify=y, random_state=random_state
+    #)
+
+    model_dir = os.path.join(os.getcwd(), 'model')
+    class_model_weights_path = os.path.join(model_dir, "classification_model.weights.h5")
+
+    if not os.path.exists(class_model_weights_path):
+        # topic_model.fit(
+        #     X_train, 
+        #     y_train, 
+        #     epochs=num_epochs, 
+        #     batch_size=batch_size, 
+        #     validation_data=(X_test, y_test),
+        #     verbose=1
+        # )
+
+        topic_model.fit(
+             X, 
+             y, 
+             epochs=num_epochs, 
+             batch_size=batch_size, 
+             verbose=1,
+             validation_split=0.2
+        )
+
+        topic_model.save_weights(class_model_weights_path)
+    else: topic_model.load_weights(class_model_weights_path)
+
+#### MACHINE LEARNING METHODS
+
 def cosine_similarity(sentence1, sentence2):
     sent1_tokens = word_tokenize(sentence1)
     sent2_tokens = word_tokenize(sentence2)
@@ -50,12 +159,12 @@ def read_pickle_file(filename):
         ngram_dict = pickle.load(pickle_file)
     return ngram_dict
 
-def save_user_model(user_key, user_model_log, curr_user_model):
-    user_model_log.update({
+def save_user_model(user_key, curr_user_model):
+    user_model.update({
         user_key : curr_user_model
     })
-    #pprint(user_model_log)
-    write_pickle_file(user_model_path, user_model_log)
+    pprint(user_model)
+    write_pickle_file(user_model_path, user_model)
 
 def get_vocabulary(corpus):
     vocabulary = list(map(lambda x: set(corpus[x]['counts'].keys()), corpus.keys()))
@@ -107,24 +216,51 @@ def sentiment_analysis(sentence):
     vs = analyzer.polarity_scores(sentence)
     return vs.get('compound')
 
+##### PROMPT METHODS #####
+
 def starting_prompt():
-    starting_exchange_str = "\nHello There! My name is Sam.\n"
-    starting_exchange_str += "I'm studying to become a Maester at the Citadel in Old Town.\n"
-    starting_exchange_str += "I specialize in the history of the great Targaryen House and their "
-    starting_exchange_str += "time ruling Westeros,\nbut I may be able to offer information about "
-    starting_exchange_str += "other things as well.\n"
-    starting_exchange_str += "What's your name?\n\n>"
+    starting_prompt_str = "\nHello There! My name is Sam.\n"
+    starting_prompt_str += "I'm studying to become a Maester at the Citadel in Old Town.\n"
+    starting_prompt_str += "I specialize in the history of the great Targaryen House and their "
+    starting_prompt_str += "time ruling Westeros,\nbut I may be able to offer information about "
+    starting_prompt_str += "other things as well.\n"
+    starting_prompt_str += "What's your name?\n\n>"
 
     exchange = list()
-    exchange.append(starting_exchange_str)
-    name = input(starting_exchange_str)
+    exchange.append(starting_prompt_str)
+    name = input(starting_prompt_str)
     exchange.append(name)
 
-    bot_response_str = "\nI'm so glad to meet you, " + name + "."
-    print(bot_response_str)
-    exchange.append(bot_response_str)
+    if not ( user_model.get(name, None) ):
+        name_response_str = "\nSeven blessings! It gladdens me to meet you, " + name + ".\n"
+        print(name_response_str)
+        exchange.append(name_response_str)
+    else:
+        old_exchange = user_model[name]['chat']
+        exchange = old_exchange + exchange
+        name_response_str = "\nIndeed, I suspected it was you. My apologies for not immediately recognizing you,\n"
+        name_response_str += "but as a maester engrossed in the studies of human afflictions, mystical forces, and\n" 
+        name_response_str += "the intricacies of our world, facial recognition often eludes me.\n"
+        name_response_str += "Furthermore, I have always struggled with recalling faces, a shortcoming I readily admit.\n"
+        name_response_str += "But I digress, let us speak no more of that.\n"
 
-    feeling_prompt_str = "\nAre you feeling well today?\n\n>"
+        old_wellbeing = user_model[name]['wellbeing_sentiment']
+
+        if ( old_wellbeing >= 0.05 ): 
+            name_response_str += "I recall our last encounter, during which you seemed to be blessed by good fortune.\n"
+            name_response_str += "I trust that this trend has persisted in your endeavors since then.\n"
+        elif ( ( old_wellbeing > -0.05 ) and ( old_wellbeing < 0.05 ) ): 
+            name_response_str += "I recall our previous conversation, where your life seemed marked by tranquility and\n"
+            name_response_str += "routine amidst the tumultuous world we inhabit.\n"
+            name_response_str += "May fortune continue to smile upon you in these trying times."
+        else: 
+            name_response_str += "I recall our previous discussion, during which your life appeared fraught with hardship\n"
+            name_response_str += "and adversity. I hope the seven have smiled upon you since."
+
+        print(name_response_str)
+        exchange.append(name_response_str)
+
+    feeling_prompt_str = "\nHow stands your well-being at present?\n\n>"
     feeling_response_str = input(feeling_prompt_str)
     exchange.append(feeling_prompt_str)
     exchange.append(feeling_response_str)
@@ -133,28 +269,15 @@ def starting_prompt():
     
     return exchange, name, sent_analysis_score
 
-def initial_prompt(knowledge_base):
-    initial_prompt_str = "\nWhat would you like to talk about today?\n\n"
-    initial_prompt_str += "You can ask me about the following:\n\t"
-    initial_prompt_str += ",\n\t".join(knowledge_base.keys())
-    initial_prompt_str += "\n\n>"
+def topic_prompt(knowledge_base):
+    topic_prompt_str = "\nOn what subject do you desire enlightenment?\n\n"
+    topic_prompt_str += "You may inquire about the following:\n\t"
+    topic_prompt_str += ",\n\t".join(knowledge_base.keys())
+    topic_prompt_str += "\n\n>"
 
     exchange = list()
-    exchange.append(initial_prompt_str)
-    response = input(initial_prompt_str)
-    exchange.append(response)
-
-    return exchange, response
-
-def middle_prompt(knowledge_base):
-    initial_prompt_str = "\nWhat else would you like to talk about today?\n\n"
-    initial_prompt_str += "You can ask me about the following:\n\t"
-    initial_prompt_str += ",\n\t".join(knowledge_base.keys())
-    initial_prompt_str += "\n\n>"
-
-    exchange = list()
-    exchange.append(initial_prompt_str)
-    response = input(initial_prompt_str)
+    exchange.append(topic_prompt_str)
+    response = input(topic_prompt_str)
     exchange.append(response)
 
     return exchange, response
@@ -175,7 +298,8 @@ def continue_prompt():
     elif ( response.lower() == "no" ):
         will_continue = False
     else:
-        confusion_str = "\nI'm afraid I don't speak in that tongue.\n"
+        confusion_str = "\nI beg your pardon, but your words are lost on me,\n"
+        confusion_str += "and I am unfamiliar with the tongue you speak.\n"
         confusion_str += "What does " + "`" + response + "` mean exactly?\n"
         print(confusion_str)
         exchange.append(confusion_str)
@@ -185,6 +309,8 @@ def continue_prompt():
         return exchange, new_will_continue
 
     return exchange, will_continue
+
+##### PROMPT METHODS #####
 
 def search_corpus_for_information(corpus, response):
     pertinent_sentences = list(map(lambda x: corpus[x]['sentences'], corpus.keys()))
@@ -207,115 +333,129 @@ def search_for_information(corpus, knowledge_base, relevant_tokens):
 
     return information
 
+def predict_topic(response):
+    transformed_res = topic_tfidf_vectorizer.transform([response])
+    predictions = topic_model.predict(transformed_res)
+    return topics[np.argmax(predictions[0])]
+
 def give_information(corpus, knowledge_base, response, exchange):
-    key_terms = extract_important_terms(response)
-    vocabulary = get_vocabulary(corpus)
-    relevant_tokens = get_topic_relevant_tokens(key_terms, vocabulary)
+    #key_terms = extract_important_terms(response)
+    #vocabulary = get_vocabulary(corpus)
+    #relevant_tokens = get_topic_relevant_tokens(key_terms, vocabulary)
 
-    if ( len(relevant_tokens) > 0 ):
-        relevant_info_str = "\nCertainly! I'd be happy to discuss those things. \n"
-        print(relevant_info_str)
-        exchange.append(relevant_info_str)
+    predicted_topic = predict_topic(response)
 
-        found_info_str = "\nHmm... Here's what I can say about that:"
-        found_info_str += "\n\n"
+    relevant_info_str = "\nIt seems as if you'd like to discuss: \n"
+    relevant_info_str += "\t" + predicted_topic
+    print(relevant_info_str)
+    exchange.append(relevant_info_str)
 
-        information = search_for_information(corpus, knowledge_base, key_terms)
+    #found_info_str = "\nHmm... Here's what I can say about that."
+    #found_info_str += "\n\n"
 
-        if information: 
-            found_info_str += information
+    #information = search_for_information(corpus, knowledge_base, key_terms)
 
-        print(found_info_str)
-        exchange.append(found_info_str)
-        
-    else:
-        unsure_str = "Hmm... I'm unsure about the following topic(s):"
-        unsure_str += ",\n\t".join(key_terms)
-        print(unsure_str)
-        exchange.append(unsure_str)
+    #if information: 
+    #    found_info_str += information
+
+    #print(found_info_str)
+    #exchange.append(found_info_str)
+    
+    #unsure_str = "I possess no knowledge concerning that matter or person."
+    #print(unsure_str)
+    #exchange.append(unsure_str)
 
     return exchange
 
+def topic_exchange(corpus, knowledge_base, exchange):
+    topic_prompt_exchange, response = topic_prompt(knowledge_base)
+    exchange += topic_prompt_exchange
+    exchange = give_information(corpus, knowledge_base, response, exchange)
 
-def chat(corpus, tf_idf, knowledge_base, user_model):
-    curr_user_model = dict()
-    exchange = list()
-    name = None
+    return exchange
 
-    starting_exchange, name, sentiment_score = starting_prompt()
-    exchange += starting_exchange
+def continue_exchange(exchange):
+    cont_prompt_exchange, still_chatting = continue_prompt()
+    exchange += cont_prompt_exchange
+
+    return exchange, still_chatting
+
+def introductions(corpus, knowledge_base, exchange):
+    first_exchange, name, sentiment_score = starting_prompt()
+    exchange += first_exchange
 
     #positive sentiment: compound score >= 0.05
     #neutral sentiment: (compound score > -0.05) and (compound score < 0.05)
     #negative sentiment: compound score <= -0.05
 
-    still_chatting = True
-
     if ( sentiment_score >= 0.05 ):
         happiness_str = "\nIt gladdens me to hear that."
         print(happiness_str)
         exchange.append(happiness_str)
-        
-        initial_exchange, response = initial_prompt(knowledge_base)
-        exchange += initial_exchange
 
-        exchange = give_information(corpus, knowledge_base, response, exchange)
-
-        cont_prompt_exchange, still_chatting = continue_prompt()
-        exchange += cont_prompt_exchange
+        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, still_chatting = continue_exchange(exchange)
         
     elif ( ( sentiment_score > -0.05 ) and ( sentiment_score < 0.05 ) ):
-        initial_exchange, response = initial_prompt(knowledge_base)
-        exchange += initial_exchange
+        neutral_str = "\nIt appears fortune smiles upon you, for your existence seems\n"
+        neutral_str += "remarkably tranquil amidst the chaos of this realm."
+        print(neutral_str)
+        exchange.append(neutral_str)
 
-        exchange = give_information(corpus, knowledge_base, response, exchange)
-
-        cont_prompt_exchange, still_chatting = continue_prompt()
-        exchange += cont_prompt_exchange
+        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, still_chatting = continue_exchange(exchange)
 
     else:
-        sadness_str = "\nThat's unfortunate. I lament your circumstances."
+        sadness_str = "\nI offer my sympathies for your plight. May the Seven watch over you."
         print(sadness_str)
         exchange.append(sadness_str)
 
-        cont_prompt_exchange, still_chatting = continue_prompt()
-        exchange += cont_prompt_exchange
+        exchange, still_chatting = continue_exchange(exchange)
+
+    return exchange, still_chatting, name, sentiment_score
+
+def chat(corpus, tf_idf, knowledge_base):
+    curr_user_model = dict()
+    exchange = list()
+    name = None
+    still_chatting = True
+
+    exchange, still_chatting, name, wellbeing_sentiment = introductions(corpus, knowledge_base, exchange)
 
     while ( still_chatting ):
-        middle_exchange, response = middle_prompt(knowledge_base)
-        exchange += middle_exchange
-
-        exchange = give_information(corpus, knowledge_base, response, exchange)
-
-        cont_prompt_exchange, still_chatting = continue_prompt()
-        exchange += cont_prompt_exchange
+        exchange = topic_exchange(corpus, knowledge_base, exchange)
+        exchange, still_chatting = continue_exchange(exchange)
 
     curr_user_model.update({
         'chat' : exchange,
         'name' : name,
-        'sentiment' : sentiment_score,
+        'wellbeing_sentiment' : wellbeing_sentiment,
     })
+    
     curr_index = len(user_model.keys())
     save_user_model(
-        "user" + str(curr_index) + "_" + get_formatted_current_date_time(), 
-        user_model, 
+        name, 
         curr_user_model
     )
 
 def main():
-
     global STOPWORDS
     STOPWORDS = stopwords.words('english')
 
     CWD = os.getcwd()
     corpus_dir = os.path.join(CWD, 'corpus')
     pickle_corpus_dir = os.path.join(corpus_dir,'pickle')
-
     chatbot_dir = os.path.join(CWD, 'chatbot')
+    model_dir = os.path.join(CWD, 'model')
+
 
     if not os.path.exists(chatbot_dir):
         os.mkdir(chatbot_dir)
-
+    
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+    
+    global user_model
     global user_model_path
 
     user_model_path = os.path.join(chatbot_dir, "user_model.pickle")
@@ -328,14 +468,13 @@ def main():
     corpus = read_pickle_file(os.path.join(pickle_corpus_dir,'corpus.pickle'))
     knowledge_base = read_pickle_file(os.path.join(pickle_corpus_dir,'knowledge_base.pickle'))
 
-    pprint(knowledge_base)
-
-    #chat(corpus, tf_idf, knowledge_base, user_model)
+    train_models(knowledge_base)
+    chat(corpus, tf_idf, knowledge_base)
 
 if __name__ == "__main__":
     global nlp_ner
     global ROMAN_CONSTANTS
     ROMAN_CONSTANTS = [ "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"]
-    nlp_ner = spacy.load('en_core_web_md')
+    nlp_ner = spacy.load('en_core_web_sm')
     main()
 

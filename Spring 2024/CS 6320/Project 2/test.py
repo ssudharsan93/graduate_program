@@ -21,7 +21,6 @@ def main():
 
     pickle_corpus_dir = os.path.join(corpus_dir,'pickle')
 
-
     knowledge_base = read_pickle_file(os.path.join(pickle_corpus_dir, "knowledge_base.pickle"))
     chats = read_pickle_file(os.path.join(chatbot_dir, "user_model.pickle"))
 
